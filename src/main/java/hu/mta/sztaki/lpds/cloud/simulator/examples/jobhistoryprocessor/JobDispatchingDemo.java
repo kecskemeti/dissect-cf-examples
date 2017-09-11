@@ -48,6 +48,9 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineContr
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.SchedulingDependentMachines;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.AbcConsolidator;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.PsoConsolidator;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.GaConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 import hu.mta.sztaki.lpds.cloud.simulator.util.CloudLoader;
 import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
@@ -132,20 +135,45 @@ public class JobDispatchingDemo {
 			System.exit(0);
 		}
 
-		String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.examples.consolidator");
+		//String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator");
+		String consolidatorClass = "Consolidator";
 		Class<? extends Consolidator> consolidator = null;
 		if (consolidatorClass != null) {
+//			try {
+//				@SuppressWarnings("rawtypes")
+//				Class trial = Class.forName(consolidatorClass);
+//				if (Consolidator.class.isAssignableFrom(trial)) {
+//					consolidator = trial;
+//				} else {
+//					consolidator = SimpleConsolidator.class;
+//				}
+//			} catch (Exception e) {
+//				consolidator = SimpleConsolidator.class;
+//			}
+			
+			// new version
 			try {
 				@SuppressWarnings("rawtypes")
-				Class trial = Class.forName(consolidatorClass);
-				if (Consolidator.class.isAssignableFrom(trial)) {
-					consolidator = trial;
-				} else {
+				Class trial = null;
+				if(args.length > 4) {
+					switch(args[4]) {
+						case "abc": trial = AbcConsolidator.class;
+						break;
+						case "ga": trial = GaConsolidator.class;
+						break;
+						case "pso" : trial = PsoConsolidator.class;
+						break;
+					}
+					if (Consolidator.class.isAssignableFrom(trial)) {
+						consolidator = trial;
+					}
+				}
+				else {
 					consolidator = SimpleConsolidator.class;
 				}
 			} catch (Exception e) {
 				consolidator = SimpleConsolidator.class;
-			}
+			}			
 		}
 
 		// The preparation of the clouds
