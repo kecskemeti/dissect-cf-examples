@@ -25,11 +25,14 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.jobhistoryprocessor;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
@@ -198,6 +201,22 @@ class StateMonitor extends Timed {
 			}
 			// Warning! assuming ms base.
 			System.err.println("Total power consumption: " + sum / 1000 / 3600000 + " kWh");
+			
+			Properties results = new Properties();
+			File file = new File("consolidationResults.xml");
+			
+			double tpc = sum / 1000 / 3600000; 
+			results.setProperty("total power consumption", Double.toString(tpc) + " kWh");		
+			
+			FileOutputStream fileOutput;
+			try {
+				fileOutput = new FileOutputStream(file);
+				results.storeToXML(fileOutput, null);
+				fileOutput.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
 		}
 	}
 }

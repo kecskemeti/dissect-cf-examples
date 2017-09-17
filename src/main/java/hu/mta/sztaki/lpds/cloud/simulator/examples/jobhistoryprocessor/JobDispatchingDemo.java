@@ -25,6 +25,8 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.jobhistoryprocessor;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -32,6 +34,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.PowerState;
@@ -390,8 +393,32 @@ public class JobDispatchingDemo {
 		System.err.println("Simulated timespan: " + (Timed.getFireCount() - dispatcher.getMinsubmittime() * 1000));
 		System.err.println("Final number of: Ignored jobs - " + dispatcher.getIgnorecounter() + " Destroyed VMs - "
 				+ dispatcher.getDestroycounter());
+		
+		long migrations = 0;
+		long pms = 0;
+		
 		if (consolidator != null) {
-			System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+			//System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);			
+			if(args.length > 4) {
+				switch(args[4]) {
+					case "abc": 	System.err.println("Total migrations done: " + AbcConsolidator.migrationCounter);
+									System.err.println("Active Pms: " + AbcConsolidator.activePmCounter);
+									migrations = AbcConsolidator.migrationCounter;
+									pms = AbcConsolidator.activePmCounter;
+					break;
+					case "ga": 		System.err.println("Total migrations done: " + GaConsolidator.migrationCounter);
+									System.err.println("Active Pms: " + GaConsolidator.activePmCounter);
+									migrations = GaConsolidator.migrationCounter;
+									pms = GaConsolidator.activePmCounter;
+					break;
+					case "pso" : 	System.err.println("Total migrations done: " + PsoConsolidator.migrationCounter);
+									System.err.println("Active Pms: " + PsoConsolidator.activePmCounter);
+									migrations = PsoConsolidator.migrationCounter;
+									pms = PsoConsolidator.activePmCounter;
+					break;
+				}				
+			}
+			
 		}
 		long vmcount = 0;
 		for (IaaSService lociaas : iaasList) {
@@ -400,5 +427,23 @@ public class JobDispatchingDemo {
 			}
 		}
 		System.err.println("Performance: " + (((double) vmcount) / duration) + " VMs/ms ");
+		
+		// save the results inside a file to load it inside the consolidation controller
+		
+		Properties results = new Properties();
+		File file = new File("consolidationResults.xml");		
+		FileInputStream fileInput = new FileInputStream(file);
+		results.loadFromXML(fileInput);
+		fileInput.close();
+		
+		//results.setProperty("total power consumption", null);			is set inside the StateMonitor
+		results.setProperty("migrations", Long.toString(migrations));
+		results.setProperty("active pms", Long.toString(pms));
+		results.setProperty("time", Long.toString(duration));
+		results.setProperty("performance", (((double) vmcount) / duration) + " VMs/ms ");
+		
+		FileOutputStream fileOutput = new FileOutputStream(file);
+		results.storeToXML(fileOutput, null);
+		fileOutput.close();
 	}
 }
