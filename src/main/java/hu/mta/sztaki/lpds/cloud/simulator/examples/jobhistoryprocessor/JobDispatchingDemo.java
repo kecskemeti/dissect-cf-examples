@@ -81,6 +81,7 @@ public class JobDispatchingDemo {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		Timed.resetTimed();
 		// The help
 		if (args.length < 2) {
 			System.out.println("Expected parameters:");
