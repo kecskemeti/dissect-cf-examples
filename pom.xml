@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>hu.mta.sztaki.lpds.cloud.simulator</groupId>
 	<artifactId>dissect-cf-examples</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT-rp</version>
 	<name>DISSECT-CF-Examples</name>
 	<description>Examples for the DIScrete event baSed Energy Consumption simulaTor for Clouds and Federations</description>
 	<dependencies>
