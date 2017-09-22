@@ -396,26 +396,45 @@ public class JobDispatchingDemo {
 				+ dispatcher.getDestroycounter());
 		
 		long migrations = 0;
-		long pms = 0;
+		double averagePms = 0;
+		long runs = 0;
+		long vms = 0;
+		long maxPms = 0;
+		double averageTime = 0;
 		
 		if (consolidator != null) {
 			//System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);			
 			if(args.length > 4) {
 				switch(args[4]) {
 					case "abc": 	System.err.println("Total migrations done: " + AbcConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + AbcConsolidator.activePmCounter);
+									System.err.println("Active Pms: " + AbcConsolidator.averagePmCounter);
 									migrations = AbcConsolidator.migrationCounter;
-									pms = AbcConsolidator.activePmCounter;
+									averagePms = AbcConsolidator.averagePmCounter / AbcConsolidator.callCounter;
+									runs = AbcConsolidator.callCounter;
+									vms = AbcConsolidator.vmCounter;
+									maxPms = AbcConsolidator.maxPmCounter;
+									averageTime = duration / runs;
+									AbcConsolidator.clearStatics();
 					break;
 					case "ga": 		System.err.println("Total migrations done: " + GaConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + GaConsolidator.activePmCounter);
+									System.err.println("Active Pms: " + GaConsolidator.averagePmCounter);
 									migrations = GaConsolidator.migrationCounter;
-									pms = GaConsolidator.activePmCounter;
+									averagePms = GaConsolidator.averagePmCounter / GaConsolidator.callCounter;
+									runs = GaConsolidator.callCounter;
+									vms = GaConsolidator.vmCounter;
+									maxPms = GaConsolidator.maxPmCounter;
+									averageTime = duration / runs;
+									GaConsolidator.clearStatics();
 					break;
 					case "pso" : 	System.err.println("Total migrations done: " + PsoConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + PsoConsolidator.activePmCounter);
+									System.err.println("Active Pms: " + PsoConsolidator.averagePmCounter);
 									migrations = PsoConsolidator.migrationCounter;
-									pms = PsoConsolidator.activePmCounter;
+									averagePms = PsoConsolidator.averagePmCounter / PsoConsolidator.callCounter;
+									runs = PsoConsolidator.callCounter;
+									vms = PsoConsolidator.vmCounter;
+									maxPms = PsoConsolidator.maxPmCounter;
+									averageTime = duration / runs;
+									PsoConsolidator.clearStatics();
 					break;
 				}				
 			}
@@ -439,8 +458,12 @@ public class JobDispatchingDemo {
 		
 		//results.setProperty("total power consumption", null);			is set inside the StateMonitor
 		results.setProperty("migrations", Long.toString(migrations));
-		results.setProperty("active pms", Long.toString(pms));
-		results.setProperty("time", Long.toString(duration));
+		results.setProperty("max active pms", Long.toString(maxPms));
+		results.setProperty("average active pms", Double.toString(averagePms));
+		results.setProperty("runs", Long.toString(runs));
+		results.setProperty("amount of vms", Long.toString(vms));
+		results.setProperty("averageTime", Double.toString(averageTime) + " ms");
+		results.setProperty("time", Long.toString(duration) + " ms");
 		results.setProperty("performance", (((double) vmcount) / duration) + " VMs/ms ");
 		
 		FileOutputStream fileOutput = new FileOutputStream(file);
