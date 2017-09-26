@@ -16,7 +16,7 @@
                 <dependency>
                         <groupId>at.ac.uibk.dps.cloud.simulator</groupId>
                         <artifactId>dissect-cf</artifactId>
-                        <version>0.9.7-SNAPSHOT</version>
+                        <version>0.9.7-SNAPSHOT-rp</version>
                 </dependency>
                 <dependency>
                 	<groupId>
@@ -43,8 +43,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
