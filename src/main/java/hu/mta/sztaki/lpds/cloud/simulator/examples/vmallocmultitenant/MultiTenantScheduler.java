@@ -5,11 +5,16 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
 
+	/**
+	 * 
+	 * 
+	 * @author Rene Ponto
+	 */
+
 public class MultiTenantScheduler extends Scheduler{
 
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

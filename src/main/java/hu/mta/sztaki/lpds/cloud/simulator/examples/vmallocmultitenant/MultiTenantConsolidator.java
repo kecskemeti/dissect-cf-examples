@@ -7,11 +7,16 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
+	/**
+	 * A consolidator which supports secure enclaves on physical machines.
+	 * 
+	 * @author Rene Ponto
+	 */
+
 public class MultiTenantConsolidator extends Consolidator{
 
 	public MultiTenantConsolidator(IaaSService toConsolidate, long consFreq) {
 		super(toConsolidate, consFreq);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
