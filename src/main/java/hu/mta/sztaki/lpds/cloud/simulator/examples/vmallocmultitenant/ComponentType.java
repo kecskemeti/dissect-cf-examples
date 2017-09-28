@@ -15,18 +15,23 @@ public class ComponentType {
 	
 	private String name;
 	private String providedBy;
-	//Multi_size base_size;		replaced with AlterableResourceConstraints
 	private AlterableResourceConstraints cons;
 	private Set<ComponentInstance> instances;
 	private int instanceCounter;
-	private boolean sgxSupport;
+	private boolean isSgxSupported;
 
-	public ComponentType(String name, String providedBy, /*Multi_size base_size, */ AlterableResourceConstraints cons, boolean sgxSupport) {
+	/**
+	 * 
+	 * @param name
+	 * @param providedBy
+	 * @param cons
+	 * @param sgxSupport
+	 */
+	public ComponentType(String name, String providedBy, AlterableResourceConstraints cons, boolean sgxSupport) {
 		this.name = name;
 		this.cons = cons;
 		this.providedBy = providedBy;
-		//this.base_size = base_size;
-		this.sgxSupport = sgxSupport;
+		this.isSgxSupported = sgxSupport;
 		instanceCounter = 0;
 	}
 	
@@ -37,8 +42,6 @@ public class ComponentType {
 	public String getProvidedBy() {
 		return providedBy;
 	}
-		
-	//Multi_size get_base_size() {return base_size;}
 	
 	public AlterableResourceConstraints getResources() {
 		return cons;
@@ -49,9 +52,16 @@ public class ComponentType {
 	}
 	
 	public boolean isSgxSupported() {
-		return sgxSupport;
+		return isSgxSupported;
 	}
 	
+	/**
+	 * Creates a new ComponentInstance of this ComponentType and adds it to the set of instances.
+	 * Increases also the instanceCounter.
+	 * @param crit
+	 * 				Shall the instance host critical data?
+	 * @return The created ComponentInstance.
+	 */
 	public ComponentInstance createInstance(boolean crit) {
 		ComponentInstance inst;
 		String instanceName = name + Integer.toString(instanceCounter);
@@ -61,6 +71,11 @@ public class ComponentType {
 		return inst;
 	}
 
+	/**
+	 * Removes the given ComponentInstance from the set.
+	 * @param ci
+	 * 			The ComponentInstance which shall be removed.
+	 */
 	public void removeInstance(ComponentInstance ci) {
 		Logger.getGlobal().info("Removing an instance of type " + name);
 		instances.remove(ci);
