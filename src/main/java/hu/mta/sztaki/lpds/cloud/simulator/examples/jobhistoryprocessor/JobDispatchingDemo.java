@@ -138,7 +138,7 @@ public class JobDispatchingDemo {
 			System.exit(0);
 		}
 
-		String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator");
+		String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.examples.consolidator");
 		Class<? extends Consolidator> consolidator = null;
 		if (consolidatorClass != null) {
 			try {
