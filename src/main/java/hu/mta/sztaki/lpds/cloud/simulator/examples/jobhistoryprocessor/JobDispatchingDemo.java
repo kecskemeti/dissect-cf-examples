@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.PowerState;
@@ -81,6 +83,7 @@ public class JobDispatchingDemo {
 	public static void main(String[] args) throws Exception {
 		// Allows repeated execution
 		Timed.resetTimed();
+		Logger.getGlobal().setLevel(Level.OFF);
 		// The help
 		if (args.length < 2) {
 			System.out.println("Expected parameters:");
