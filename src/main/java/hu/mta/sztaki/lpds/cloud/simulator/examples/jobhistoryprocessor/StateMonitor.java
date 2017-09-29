@@ -25,14 +25,11 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.jobhistoryprocessor;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
@@ -58,9 +55,9 @@ class StateMonitor extends Timed {
 
 	class DataFlusherThread extends Thread {
 		/**
-		 * Where do we write the data? Allows to have a threshold on the
-		 * monitoring database and in the future it can be used to continuously
-		 * empty the database to the disk.
+		 * Where do we write the data? Allows to have a threshold on the monitoring
+		 * database and in the future it can be used to continuously empty the database
+		 * to the disk.
 		 */
 		private BufferedWriter bw;
 
@@ -104,35 +101,34 @@ class StateMonitor extends Timed {
 	}
 
 	/**
-	 * The list of energy meters controlled by this state monitor. During a
-	 * regular runtime, here we will have a meter for every physical machine in
-	 * the system. Please note that the monitor does not recognize the changes
-	 * in the set of PMs in an IaaSService.
+	 * The list of energy meters controlled by this state monitor. During a regular
+	 * runtime, here we will have a meter for every physical machine in the system.
+	 * Please note that the monitor does not recognize the changes in the set of PMs
+	 * in an IaaSService.
 	 */
 	private ArrayList<IaaSEnergyMeter> meters = new ArrayList<IaaSEnergyMeter>();
 	/**
 	 * The dispatcher which sends the jobs to the actual clouds in some VMs. The
-	 * dispatcher is expected to unsubscribe from timing events if it is no
-	 * longer having jobs to be executed in a trace. The monitor watches this
-	 * case and ensures that the monitoring is terminated once the dispatcher is
-	 * not pushing new jobs towards the clouds and there are no furhter
-	 * activities observable on the cloud becaouse of the dispatcher.
+	 * dispatcher is expected to unsubscribe from timing events if it is no longer
+	 * having jobs to be executed in a trace. The monitor watches this case and
+	 * ensures that the monitoring is terminated once the dispatcher is not pushing
+	 * new jobs towards the clouds and there are no furhter activities observable on
+	 * the cloud becaouse of the dispatcher.
 	 */
 	final MultiIaaSJobDispatcher dispatcher;
 	/**
-	 * The list if cloud services that should be monitored by this state
-	 * monitor.
+	 * The list if cloud services that should be monitored by this state monitor.
 	 */
 	final List<IaaSService> iaasList;
 
 	/**
 	 * Initiates the state monitoring process by setting up the energy meters,
-	 * creating the output csv file (called [tracefile].converted) and
-	 * subscribing to periodic timing events (for every 5 minutes) so the
-	 * metering queires can be made automatically.
+	 * creating the output csv file (called [tracefile].converted) and subscribing
+	 * to periodic timing events (for every 5 minutes) so the metering queires can
+	 * be made automatically.
 	 * 
-	 * WARNING: this function keeps a file open until the dispatcher terminates
-	 * its operation!
+	 * WARNING: this function keeps a file open until the dispatcher terminates its
+	 * operation!
 	 * 
 	 * @param traceFile
 	 *            the name of the output csv (without the .converted extension)
@@ -159,12 +155,17 @@ class StateMonitor extends Timed {
 		subscribe(300000); // 5 minutes in ms
 	}
 
+	public static double averageRunningPMs = 0;
+	public static int maxRunningPMs=0;
+	private long measurementCount = 0;
+
 	/**
 	 * The main event handling mechanism in this periodic state monitor. This
 	 * function is called in every 5 simulated minutes.
 	 */
 	@Override
 	public void tick(long fires) {
+		measurementCount++;
 		// Collecting the monitoring data
 		OverallSystemState current = new OverallSystemState();
 		final int iaasCount = iaasList.size();
@@ -181,6 +182,8 @@ class StateMonitor extends Timed {
 			current.queueLen += iaas.sched.getQueueLength();
 			current.totalTransferredData += iaas.repositories.get(0).outbws.getTotalProcessed();
 		}
+		maxRunningPMs=Math.max(maxRunningPMs, current.runningPMs);
+		averageRunningPMs = current.runningPMs + (current.runningPMs - averageRunningPMs) / measurementCount;
 		current.timeStamp = Timed.getFireCount();
 		// Recording it
 		monitoringDataQueue.add(current);
@@ -201,22 +204,7 @@ class StateMonitor extends Timed {
 			}
 			// Warning! assuming ms base.
 			System.err.println("Total power consumption: " + sum / 1000 / 3600000 + " kWh");
-			
-			Properties results = new Properties();
-			File file = new File("consolidationResults.xml");
-			
-			double tpc = sum / 1000 / 3600000; 
-			results.setProperty("total power consumption", Double.toString(tpc) + " kWh");		
-			
-			FileOutputStream fileOutput;
-			try {
-				fileOutput = new FileOutputStream(file);
-				results.storeToXML(fileOutput, null);
-				fileOutput.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+
 		}
 	}
 }

@@ -47,9 +47,6 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.SimpleConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineController;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.SchedulingDependentMachines;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.AbcConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.GaConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.PsoConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
@@ -339,7 +336,7 @@ public class JobDispatchingDemo {
 		}
 		long beforeSimu = Calendar.getInstance().getTimeInMillis();
 		System.err.println(
-				"Job dispatcher (with " + dispatcher.jobs.length + " jobs)  is completely prepared at " + beforeSimu);
+				"Job dispatcher (with " + dispatcher.jobs.length + " jobs) is completely prepared at " + beforeSimu);
 		// Moving the simulator's time just before the first event would come
 		// from the dispatcher
 		Timed.skipEventsTill(dispatcher.getMinsubmittime() * 1000);
@@ -374,33 +371,11 @@ public class JobDispatchingDemo {
 		
 		
 		if (consolidator != null) {
-			System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);		
-			long migrations = 0;
-			double averagePms = 0;
-			long runs = 0;
-			long vms = 0;
-			long maxPms = 0;
-			double averageTime = 0;
-			migrations = SimpleConsolidator.migrationCount;
-			if(args.length > 4) {
-				switch(args[4]) {
-					case "abc": 	System.err.println("Total migrations done: " + AbcConsolidator.migrationCounter);
-									migrations = AbcConsolidator.migrationCounter;
-									averageTime = duration / runs;
-									AbcConsolidator.clearStatics();
-					break;
-					case "ga": 		System.err.println("Total migrations done: " + GaConsolidator.migrationCounter);
-									migrations = GaConsolidator.migrationCounter;
-									averageTime = duration / runs;
-									GaConsolidator.clearStatics();
-					break;
-					case "pso" : 	System.err.println("Total migrations done: " + PsoConsolidator.migrationCounter);
-									migrations = PsoConsolidator.migrationCounter;
-									averageTime = duration / runs;
-									PsoConsolidator.clearStatics();
-					break;
-				}				
-			}
+			System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+			System.err.println("Average number of PMs in running state: "+ StateMonitor.averageRunningPMs);
+			System.err.println("Maximum number of running PMs during the whole simulation: "+ StateMonitor.maxRunningPMs);
+			System.err.println("Number of consolidation runs: "+ Consolidator.consolidationRuns);
+			System.err.println("Consolidator performance: "+ duration/Consolidator.consolidationRuns + " ms/consolidation");
 			
 		}
 		long vmcount = 0;
@@ -409,16 +384,7 @@ public class JobDispatchingDemo {
 				vmcount += pm.getCompletedVMs();
 			}
 		}
+		System.err.println("Number of VMs used: " + vmcount);
 		System.err.println("Performance: " + (((double) vmcount) / duration) + " VMs/ms ");
-		
-		//results.setProperty("total power consumption", null);			is set inside the StateMonitor
-		results.setProperty("migrations", Long.toString(migrations));
-		results.setProperty("max active pms", Long.toString(maxPms));
-		results.setProperty("average active pms", Double.toString(averagePms));
-		results.setProperty("runs", Long.toString(runs));
-		results.setProperty("amount of vms", Long.toString(vms));
-		results.setProperty("averageTime", Double.toString(averageTime) + " ms");
-		results.setProperty("time", Long.toString(duration) + " ms");
-		results.setProperty("performance", (((double) vmcount) / duration) + " VMs/ms ");
 	}
 }
