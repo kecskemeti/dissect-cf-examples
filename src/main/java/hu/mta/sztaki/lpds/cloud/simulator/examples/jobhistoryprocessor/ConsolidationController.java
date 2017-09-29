@@ -55,21 +55,24 @@ public class ConsolidationController {
 		props.loadFromXML(fileInput);
 		fileInput.close();
 		
-		// set the default values
-		
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
-		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb);
-		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb);
-		
-		props.setProperty("upperThreshold", upperThreshold);
-		props.setProperty("lowerThreshold", lowerThreshold);
-		props.setProperty("mutationProb", mutationProb);
-		
+		resetDefaults();
 		//trace = props.getProperty(trace);
 		
 		FileOutputStream fileOutput = new FileOutputStream(file);
 		props.storeToXML(fileOutput, null);
 		fileOutput.close();
+	}
+	
+	private void resetDefaults() {
+		
+		// set the default values		
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
+		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb);
+		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb);
+				
+		props.setProperty("upperThreshold", upperThreshold);
+		props.setProperty("lowerThreshold", lowerThreshold);
+		props.setProperty("mutationProb", mutationProb);	
 	}
 	
 	/**
