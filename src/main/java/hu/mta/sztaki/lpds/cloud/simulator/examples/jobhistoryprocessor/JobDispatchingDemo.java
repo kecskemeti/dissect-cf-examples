@@ -76,14 +76,17 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
  */
 public class JobDispatchingDemo {
 	// save the results inside a file to load it inside the consolidation controller
-	
+
 	public static final Properties results = new Properties();
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
 		// Allows repeated execution
 		Timed.resetTimed();
-		Logger.getGlobal().setLevel(Level.OFF);
+		if (!MultiIaaSJobDispatcher.verbosity) {
+			Logger.getGlobal().setLevel(Level.OFF);
+		}
+
 		// The help
 		if (args.length < 2) {
 			System.out.println("Expected parameters:");
@@ -371,15 +374,22 @@ public class JobDispatchingDemo {
 		System.err.println("Simulated timespan: " + (Timed.getFireCount() - dispatcher.getMinsubmittime() * 1000));
 		System.err.println("Final number of: Ignored jobs - " + dispatcher.getIgnorecounter() + " Destroyed VMs - "
 				+ dispatcher.getDestroycounter());
-		
-		
+
 		if (consolidator != null) {
-			System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
-			System.err.println("Average number of PMs in running state: "+ StateMonitor.averageRunningPMs);
-			System.err.println("Maximum number of running PMs during the whole simulation: "+ StateMonitor.maxRunningPMs);
-			System.err.println("Number of consolidation runs: "+ Consolidator.consolidationRuns);
-			System.err.println("Consolidator performance: "+ duration/Consolidator.consolidationRuns + " ms/consolidation");
-			
+			if (Consolidator.consolidationRuns != 0) {
+				System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+				System.err.println("Number of consolidation runs: " + Consolidator.consolidationRuns);
+				System.err.println(
+						"Consolidator performance: " + duration / Consolidator.consolidationRuns + " ms/consolidation");
+			} else {
+				System.err.println("There were no consolidation runs!");
+			}
+		}
+		if (doMonitoring) {
+			System.err.println("Average number of PMs in running state: " + StateMonitor.averageRunningPMs);
+			System.err.println(
+					"Maximum number of running PMs during the whole simulation: " + StateMonitor.maxRunningPMs);
+
 		}
 		long vmcount = 0;
 		for (IaaSService lociaas : iaasList) {
@@ -387,7 +397,6 @@ public class JobDispatchingDemo {
 				vmcount += pm.getCompletedVMs();
 			}
 		}
-		System.err.println("Number of VMs used: " + vmcount);
 		System.err.println("Performance: " + (((double) vmcount) / duration) + " VMs/ms ");
 	}
 }
