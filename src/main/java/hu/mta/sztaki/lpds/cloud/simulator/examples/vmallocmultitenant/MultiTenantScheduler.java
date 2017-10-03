@@ -23,9 +23,11 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 public class MultiTenantScheduler extends Scheduler {
 	
 	private int vaCounter = 1;
+	private List<ComponentType> types;
 
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
+		types = new ArrayList<ComponentType>();
 	}
 
 	@Override
@@ -47,6 +49,11 @@ public class MultiTenantScheduler extends Scheduler {
 	 * similar problems.
 	 */
 	private boolean processRequest(Request request, ComponentType c, boolean crit) {
+		
+		//add the ComponentType to a list to work with them later
+		if(!types.contains(c)) {
+			types.add(c);
+		}
 		
 		//check if an existing component instance of the given type can host this tenant
 		ComponentInstance hostInstance = null;
@@ -199,7 +206,7 @@ public class MultiTenantScheduler extends Scheduler {
 	}
 	
 	/**
-	 * Not yet finished.
+	 * Should be finished.
 	 * @param vm
 	 * 			The VirtualMachine which is going to be checked.
 	 * @param i
@@ -208,24 +215,50 @@ public class MultiTenantScheduler extends Scheduler {
 	 */
 	private boolean isVmAbleToHostInstance(VirtualMachine vm, ComponentInstance i) {
 		
+		//At first check the load of the pm which hosts the given vm. If there is not
+		//enough capacity to host the given ComponentInstance, return false.
 		PhysicalMachine host = vm.getResourceAllocation().getHost();		
 		if(!(host.availableCapacities.getTotalProcessingPower() + i.getResources().getTotalProcessingPower() 
 				<= host.getCapacities().getTotalProcessingPower()) && !(host.availableCapacities.getRequiredMemory() + 
 				i.getResources().getRequiredMemory() <= host.getCapacities().getRequiredMemory())) {
 			return false;
 		}
-		if(i.isCritical()) {
-//			if(//TODO: Custom Components?) {
-				return false;
-//			}			
-		}
-		else {
-//			if(//TODO: same) {
-//				return false;
-//			}
+		
+		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
+		//if the instance is critical, there must not be a custom instance
+		if(i.isCritical()) {			
+			for(ComponentType type : types) {
+				for(ComponentInstance instance : type.getInstances()) {
+					if(instance.getVm() == vm) {
+						allInstancesOnVm.add(instance);
+					}
+				}
+			}
 			
-			return true;
+			for(ComponentInstance instance : allInstancesOnVm) {
+				if(instance.isCustom() && instance.getTenants().size() > 1)
+					return false;
+			}
 		}
+		//if there are critical instances on the vm, this one must not be custom
+		else {
+			boolean critOnVm = false;
+			String tenant = "";
+			for(ComponentInstance instance : allInstancesOnVm) {
+				if(instance.isCritical()) {
+					critOnVm = true;
+					tenant = instance.getTenants().get(0);
+					break;
+				}
+			}
+			if(critOnVm) {
+				if(i.isCustom() && i.getTenants().get(0) != tenant) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 	
 	/**

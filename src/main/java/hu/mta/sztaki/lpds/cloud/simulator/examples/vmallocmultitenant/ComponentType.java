@@ -32,7 +32,7 @@ public class ComponentType {
 		this.cons = cons;
 		this.providedBy = providedBy;
 		this.isSgxSupported = sgxSupport;
-		instanceCounter = 0;
+		instanceCounter = 0;		
 	}
 	
 	public String getName() {
@@ -65,7 +65,23 @@ public class ComponentType {
 	public ComponentInstance createInstance(boolean crit) {
 		ComponentInstance inst;
 		String instanceName = name + Integer.toString(instanceCounter);
-		inst = new ComponentInstance(instanceName, crit, this);
+		inst = new ComponentInstance(instanceName, crit, this, false);
+		instances.add(inst);
+		instanceCounter ++;
+		return inst;
+	}
+	
+	/**
+	 * Creates a custom ComponentInstance of this ComponentType and adds it to the set of instances.
+	 * Increases also the instanceCounter.
+	 * @param crit
+	 * 				Shall the instance host critical data?
+	 * @return The created ComponentInstance.
+	 */
+	public ComponentInstance createCustomInstance(boolean crit) {
+		ComponentInstance inst;
+		String instanceName = name + Integer.toString(instanceCounter);
+		inst = new ComponentInstance(instanceName, crit, this, true);
 		instances.add(inst);
 		instanceCounter ++;
 		return inst;

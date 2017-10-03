@@ -25,6 +25,8 @@ public class ComponentInstance {
 
 	private ResourceConsumption consumption;
 	private AlterableResourceConstraints constraints;
+	
+	private boolean custom;
 
 	/**
 	 * The constructor.
@@ -35,12 +37,14 @@ public class ComponentInstance {
 	 * @param componentType
 	 * 			The underlying ComponentType.
 	 */
-	public ComponentInstance(String name, boolean crit, ComponentType componentType) {
+	public ComponentInstance(String name, boolean crit, ComponentType componentType, boolean custom) {
 		this.name = name;
 		this.vm = null;
 		this.crit = crit;
 		this.type = componentType;
 		constraints = type.getResources();
+		
+		this.custom = custom;
 		
 		//create a new job on the host Vm
 		try {
@@ -49,6 +53,10 @@ public class ComponentInstance {
 			e.printStackTrace();
 		}
 	}	
+	
+	public boolean isCustom() {
+		return custom;
+	}
 	
 	public Set<Request> getRequests() {
 		return requests;
@@ -64,6 +72,7 @@ public class ComponentInstance {
 	
 	public void setVm(VirtualMachine vm) {
 		this.vm = vm;
+		adjustTask();
 	}
 	
 	public String getName() {
