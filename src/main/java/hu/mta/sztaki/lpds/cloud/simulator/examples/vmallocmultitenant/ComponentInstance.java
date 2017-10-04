@@ -33,9 +33,11 @@ public class ComponentInstance {
 	 * @param name
 	 * 			The name of this instance.
 	 * @param crit
-	 * 			Is the instance hosting critical data?
+	 * 			Determines if the instance is hosting critical data.
 	 * @param componentType
 	 * 			The underlying ComponentType.
+	 * @param custom
+	 * 			Determines if this instance is a custom implementation.
 	 */
 	public ComponentInstance(String name, boolean crit, ComponentType componentType, boolean custom) {
 		this.name = name;
@@ -46,7 +48,7 @@ public class ComponentInstance {
 		
 		this.custom = custom;
 		
-		//create a new job on the host Vm
+		//create a new job on the host VM
 		try {
 			consumption = vm.newComputeTask(constraints.getTotalProcessingPower(), ResourceConsumption.unlimitedProcessing, null);	//TODO: null?
 		} catch (NetworkException e) {
@@ -105,7 +107,7 @@ public class ComponentInstance {
 	}
 	
 	/**
-	 * Adds this Request to the set with the other ones. If a host Vm exists, the resource consumption gets adjusted.
+	 * Adds this Request to the set with the other ones. If a host VM exists, the resource consumption gets adjusted.
 	 * @param r
 	 * 			The Request which shall be added.
 	 */
@@ -118,7 +120,7 @@ public class ComponentInstance {
 	}
 	
 	/**
-	 * Remove this Request from its set and the instance itself if it was the last Request. If a host Vm exists, 
+	 * Remove this Request from its set and the instance itself if it was the last Request. If a host VM exists, 
 	 * the resource consumption gets adjusted.
 	 * @param r
 	 * 			The Request which shall be removed.
@@ -186,6 +188,11 @@ public class ComponentInstance {
 		private String tenant;
 		private AlterableResourceConstraints cons;
 		
+		/**
+		 * Defines a Request for a ComponentInstance from a tenant.
+		 * @param tenant
+		 * @param cons
+		 */
 		public Request(String tenant, AlterableResourceConstraints cons) {
 			this.tenant = tenant;
 			this.cons = cons;

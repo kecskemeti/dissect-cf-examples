@@ -36,12 +36,12 @@ public class MultiTenantConsolidator extends Consolidator{
 
 	@SuppressWarnings("static-access")
 	private void reoptimize(PhysicalMachine[] pms) throws VMManagementException, NetworkException {
-		// first, check if the number of active pms can be minimized
+		// first, check if the number of active PMs can be minimized
 		for(PhysicalMachine actualPm : pms) {
 			Map<VirtualMachine, PhysicalMachine> migrations = new HashMap<VirtualMachine, PhysicalMachine>();
 			
 			for(VirtualMachine vm : actualPm.publicVms) {
-				// migrate vm to first fit pm
+				// migrate VM to first fit PM
 				PhysicalMachine target = null;
 				for(PhysicalMachine pm : pms) {
 					//TODO: MAY_PM_HOST_VM
@@ -68,7 +68,7 @@ public class MultiTenantConsolidator extends Consolidator{
 			}
 		}
 		
-		// check if a secure pm can take load from two (non-secure) pms		
+		// check if a secure PM can take load from two (non-secure) PMs		
 		boolean changed = true;
 		while(changed) {
 			changed = false;
@@ -132,7 +132,7 @@ public class MultiTenantConsolidator extends Consolidator{
 				
 			}
 		}
-		// check if the load of a secure pm can be moved to a non-secure pm
+		// check if the load of a secure PM can be moved to a non-secure PM
 		for(PhysicalMachine pm : pms) {
 			if(/*pm.isSecure() && */pm.isRunning()) {
 				//TODO flag needed for secure

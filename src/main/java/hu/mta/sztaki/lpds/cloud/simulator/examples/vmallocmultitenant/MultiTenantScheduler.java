@@ -70,7 +70,7 @@ public class MultiTenantScheduler extends Scheduler {
 			hostInstance = c.createInstance(crit);
 			hostInstance.addRequest(request);
 			
-			//get all existing vms
+			//get all existing VMs
 			List<VirtualMachine> vmList = new ArrayList<VirtualMachine>();
 			for(PhysicalMachine pm : parent.runningMachines) {
 				for(VirtualMachine vm : pm.listVMs()) {
@@ -78,7 +78,7 @@ public class MultiTenantScheduler extends Scheduler {
 				}
 			}
 			
-			//check if an existing vm can host the hostInstance
+			//check if an existing VM can host the hostInstance
 			VirtualMachine hostVm = null;
 			for(VirtualMachine vm : vmList) {
 				if(isVmAbleToHostInstance(vm, hostInstance)) {
@@ -101,6 +101,12 @@ public class MultiTenantScheduler extends Scheduler {
 				hostInstance.setVm(hostVm);
 				
 				// sort PMs ?? TODO
+//				the algorithm orders the PMs based on their power state:
+//				PMs that are turned on precede those that are turned
+//				off. Since we assume that secure PMs are a scarce resource,
+//				the algorithm aims to use non-secure PMs whenever possible.
+//				Therefore, within the two PM groups based on power state,
+//				we sort PMs such that non-secure ones precede secure ones
 				
 				//check if an existing pm can host the hostVm
 				PhysicalMachine hostPm = null;
@@ -132,7 +138,7 @@ public class MultiTenantScheduler extends Scheduler {
 	/**
 	 * Terminates a given Request and removes it from the ComponentInstance. Further it is implemented with
 	 * the intention to save energy, so it is checked if the instance has no other requests running in order to remove
-	 * it. This is also done with the hosting vm and the host pm, which are shut down, too, if there are no tasks left
+	 * it. This is also done with the hosting VM and the host PM, which are shut down, too, if there are no tasks left
 	 * for them.
 	 * @param r
 	 * 			The given Request which is going to be terminated.
@@ -150,7 +156,7 @@ public class MultiTenantScheduler extends Scheduler {
 			
 			if(c.getVm().getResourceAllocation() == null) {	
 				
-				//remove the vm if there are no instances running
+				//remove the VM if there are no instances running
 				PhysicalMachine host = c.getVm().getResourceAllocation().getHost();
 				try {
 					host.terminateVM(c.getVm(), true);
@@ -161,7 +167,7 @@ public class MultiTenantScheduler extends Scheduler {
 				
 				if(host.isHostingVMs() == false) {
 					
-					//if the host pm is now empty, switch it off
+					//if the host PM is now empty, switch it off
 					try {
 						host.switchoff(null);
 					} catch (VMManagementException | NetworkException e) {
@@ -215,7 +221,7 @@ public class MultiTenantScheduler extends Scheduler {
 	 */
 	private boolean isVmAbleToHostInstance(VirtualMachine vm, ComponentInstance i) {
 		
-		//At first check the load of the pm which hosts the given vm. If there is not
+		//At first check the load of the PM which hosts the given VM. If there is not
 		//enough capacity to host the given ComponentInstance, return false.
 		PhysicalMachine host = vm.getResourceAllocation().getHost();		
 		if(!(host.availableCapacities.getTotalProcessingPower() + i.getResources().getTotalProcessingPower() 
@@ -240,7 +246,7 @@ public class MultiTenantScheduler extends Scheduler {
 					return false;
 			}
 		}
-		//if there are critical instances on the vm, this one must not be custom
+		//if there are critical instances on the VM, this one must not be custom
 		else {
 			boolean critOnVm = false;
 			String tenant = "";
@@ -271,11 +277,16 @@ public class MultiTenantScheduler extends Scheduler {
 	 */
 	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine vm) {
 		
+		//ensures that the aggregate size of the VMs remains below the capacity of the PM
 		if(!(pm.availableCapacities.getTotalProcessingPower() + vm.getResourceAllocation().allocated.getTotalProcessingPower() 
 				<= pm.getCapacities().getTotalProcessingPower()) && !(pm.availableCapacities.getRequiredMemory() + 
 				vm.getResourceAllocation().allocated.getRequiredMemory() <= pm.getCapacities().getRequiredMemory())) {
 			return false;
 		}
+		
+//		it is checked whether there is a component instance in the VM and another in the PM 
+//		or vice versa that would violate the data protection constraint
+		
 //		if(//TODO) {
 //			return false;
 //		}
