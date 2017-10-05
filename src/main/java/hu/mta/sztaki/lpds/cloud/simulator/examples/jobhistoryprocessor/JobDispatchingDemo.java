@@ -25,8 +25,6 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.jobhistoryprocessor;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +33,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.PowerState;
@@ -51,9 +51,6 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineContr
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.SchedulingDependentMachines;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.AbcConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.PsoConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.GaConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 import hu.mta.sztaki.lpds.cloud.simulator.util.CloudLoader;
 import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
@@ -78,10 +75,18 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
  *         MTA SZTAKI (c) 2012-5"
  */
 public class JobDispatchingDemo {
+	// save the results inside a file to load it inside the consolidation controller
+
+	public static final Properties results = new Properties();
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		// Allows repeated execution
 		Timed.resetTimed();
+		if (!MultiIaaSJobDispatcher.verbosity) {
+			Logger.getGlobal().setLevel(Level.OFF);
+		}
+
 		// The help
 		if (args.length < 2) {
 			System.out.println("Expected parameters:");
@@ -139,45 +144,20 @@ public class JobDispatchingDemo {
 			System.exit(0);
 		}
 
-		//String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator");
-		String consolidatorClass = "Consolidator";
+		String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.examples.consolidator");
 		Class<? extends Consolidator> consolidator = null;
 		if (consolidatorClass != null) {
-//			try {
-//				@SuppressWarnings("rawtypes")
-//				Class trial = Class.forName(consolidatorClass);
-//				if (Consolidator.class.isAssignableFrom(trial)) {
-//					consolidator = trial;
-//				} else {
-//					consolidator = SimpleConsolidator.class;
-//				}
-//			} catch (Exception e) {
-//				consolidator = SimpleConsolidator.class;
-//			}
-			
-			// new version
 			try {
 				@SuppressWarnings("rawtypes")
-				Class trial = null;
-				if(args.length > 4) {
-					switch(args[4]) {
-						case "abc": trial = AbcConsolidator.class;
-						break;
-						case "ga": trial = GaConsolidator.class;
-						break;
-						case "pso" : trial = PsoConsolidator.class;
-						break;
-					}
-					if (Consolidator.class.isAssignableFrom(trial)) {
-						consolidator = trial;
-					}
-				}
-				else {
+				Class trial = Class.forName(consolidatorClass);
+				if (Consolidator.class.isAssignableFrom(trial)) {
+					consolidator = trial;
+				} else {
 					consolidator = SimpleConsolidator.class;
 				}
 			} catch (Exception e) {
 				consolidator = SimpleConsolidator.class;
-			}			
+			}
 		}
 
 		// The preparation of the clouds
@@ -362,7 +342,7 @@ public class JobDispatchingDemo {
 		}
 		long beforeSimu = Calendar.getInstance().getTimeInMillis();
 		System.err.println(
-				"Job dispatcher (with " + dispatcher.jobs.length + " jobs)  is completely prepared at " + beforeSimu);
+				"Job dispatcher (with " + dispatcher.jobs.length + " jobs) is completely prepared at " + beforeSimu);
 		// Moving the simulator's time just before the first event would come
 		// from the dispatcher
 		Timed.skipEventsTill(dispatcher.getMinsubmittime() * 1000);
@@ -394,51 +374,22 @@ public class JobDispatchingDemo {
 		System.err.println("Simulated timespan: " + (Timed.getFireCount() - dispatcher.getMinsubmittime() * 1000));
 		System.err.println("Final number of: Ignored jobs - " + dispatcher.getIgnorecounter() + " Destroyed VMs - "
 				+ dispatcher.getDestroycounter());
-		
-		long migrations = 0;
-		double averagePms = 0;
-		long runs = 0;
-		long vms = 0;
-		long maxPms = 0;
-		double averageTime = 0;
-		
+
 		if (consolidator != null) {
-			//System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);			
-			if(args.length > 4) {
-				switch(args[4]) {
-					case "abc": 	System.err.println("Total migrations done: " + AbcConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + AbcConsolidator.averagePmCounter);
-									migrations = AbcConsolidator.migrationCounter;
-									averagePms = AbcConsolidator.averagePmCounter / AbcConsolidator.callCounter;
-									runs = AbcConsolidator.callCounter;
-									vms = AbcConsolidator.vmCounter;
-									maxPms = AbcConsolidator.maxPmCounter;
-									averageTime = duration / runs;
-									AbcConsolidator.clearStatics();
-					break;
-					case "ga": 		System.err.println("Total migrations done: " + GaConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + GaConsolidator.averagePmCounter);
-									migrations = GaConsolidator.migrationCounter;
-									averagePms = GaConsolidator.averagePmCounter / GaConsolidator.callCounter;
-									runs = GaConsolidator.callCounter;
-									vms = GaConsolidator.vmCounter;
-									maxPms = GaConsolidator.maxPmCounter;
-									averageTime = duration / runs;
-									GaConsolidator.clearStatics();
-					break;
-					case "pso" : 	System.err.println("Total migrations done: " + PsoConsolidator.migrationCounter);
-									System.err.println("Active Pms: " + PsoConsolidator.averagePmCounter);
-									migrations = PsoConsolidator.migrationCounter;
-									averagePms = PsoConsolidator.averagePmCounter / PsoConsolidator.callCounter;
-									runs = PsoConsolidator.callCounter;
-									vms = PsoConsolidator.vmCounter;
-									maxPms = PsoConsolidator.maxPmCounter;
-									averageTime = duration / runs;
-									PsoConsolidator.clearStatics();
-					break;
-				}				
+			if (Consolidator.consolidationRuns != 0) {
+				System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+				System.err.println("Number of consolidation runs: " + Consolidator.consolidationRuns);
+				System.err.println(
+						"Consolidator performance: " + duration / Consolidator.consolidationRuns + " ms/consolidation");
+			} else {
+				System.err.println("There were no consolidation runs!");
 			}
-			
+		}
+		if (doMonitoring) {
+			System.err.println("Average number of PMs in running state: " + StateMonitor.averageRunningPMs);
+			System.err.println(
+					"Maximum number of running PMs during the whole simulation: " + StateMonitor.maxRunningPMs);
+
 		}
 		long vmcount = 0;
 		for (IaaSService lociaas : iaasList) {
@@ -447,27 +398,5 @@ public class JobDispatchingDemo {
 			}
 		}
 		System.err.println("Performance: " + (((double) vmcount) / duration) + " VMs/ms ");
-		
-		// save the results inside a file to load it inside the consolidation controller
-		
-		Properties results = new Properties();
-		File file = new File("consolidationResults.xml");		
-		FileInputStream fileInput = new FileInputStream(file);
-		results.loadFromXML(fileInput);
-		fileInput.close();
-		
-		//results.setProperty("total power consumption", null);			is set inside the StateMonitor
-		results.setProperty("migrations", Long.toString(migrations));
-		results.setProperty("max active pms", Long.toString(maxPms));
-		results.setProperty("average active pms", Double.toString(averagePms));
-		results.setProperty("runs", Long.toString(runs));
-		results.setProperty("amount of vms", Long.toString(vms));
-		results.setProperty("averageTime", Double.toString(averageTime) + " ms");
-		results.setProperty("time", Long.toString(duration) + " ms");
-		results.setProperty("performance", (((double) vmcount) / duration) + " VMs/ms ");
-		
-		FileOutputStream fileOutput = new FileOutputStream(file);
-		results.storeToXML(fileOutput, null);
-		fileOutput.close();
 	}
 }

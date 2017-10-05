@@ -55,24 +55,21 @@ public class ConsolidationController {
 		props.loadFromXML(fileInput);
 		fileInput.close();
 		
-		resetDefaults();
+		// set the default values
+		
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
+		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb);
+		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb);
+		
+		props.setProperty("upperThreshold", upperThreshold);
+		props.setProperty("lowerThreshold", lowerThreshold);
+		props.setProperty("mutationProb", mutationProb);
+		
 		//trace = props.getProperty(trace);
 		
 		FileOutputStream fileOutput = new FileOutputStream(file);
 		props.storeToXML(fileOutput, null);
 		fileOutput.close();
-	}
-	
-	private void resetDefaults() {
-		
-		// set the default values		
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
-		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb);
-		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb);
-				
-		props.setProperty("upperThreshold", upperThreshold);
-		props.setProperty("lowerThreshold", lowerThreshold);
-		props.setProperty("mutationProb", mutationProb);	
 	}
 	
 	/**
@@ -200,16 +197,7 @@ public class ConsolidationController {
 						}
 						//load the results
 						
-						Properties psoResult = new Properties();
-						File psoData = new File("consolidationResults.xml");
-						FileInputStream psoFileInput;
-						try {
-							psoFileInput = new FileInputStream(psoData);
-							psoResult.loadFromXML(psoFileInput);
-							psoFileInput.close();
-						} catch (Exception e1) {
-							throw new RuntimeException("Results could not be read.");
-						}
+						Properties psoResult = JobDispatchingDemo.results;
 						
 						String results = "" + psoResult.getProperty("total power consumption") + ";" + psoResult.getProperty("migrations") + ";" +
 								psoResult.getProperty("max active pms") + ";" + psoResult.getProperty("average active pms") + ";" + 
@@ -253,16 +241,7 @@ public class ConsolidationController {
 						
 						//load the results
 						
-						Properties gaResult = new Properties();
-						File gaData = new File("consolidationResults.xml");
-						FileInputStream gaFileInput;
-						try {
-							gaFileInput = new FileInputStream(gaData);
-							gaResult.loadFromXML(gaFileInput);
-							gaFileInput.close();
-						} catch (Exception e1) {
-							throw new RuntimeException("Results could not be read.");
-						}
+						Properties gaResult = JobDispatchingDemo.results;
 						
 						String results = "" + gaResult.getProperty("total power consumption") + ";" + gaResult.getProperty("migrations") + ";" +
 								gaResult.getProperty("max active pms") + ";" + gaResult.getProperty("average active pms") + ";" + 
@@ -306,16 +285,7 @@ public class ConsolidationController {
 						
 						//load the results
 						
-						Properties abcResult = new Properties();
-						File abcData = new File("consolidationResults.xml");
-						FileInputStream abcFileInput;
-						try {
-							abcFileInput = new FileInputStream(abcData);
-							abcResult.loadFromXML(abcFileInput);
-							abcFileInput.close();
-						} catch (Exception e1) {
-							throw new RuntimeException("Results could not be read.");
-						} 
+						Properties abcResult = JobDispatchingDemo.results;
 						
 						String results = "" + abcResult.getProperty("total power consumption") + ";" + abcResult.getProperty("migrations") + ";" +
 								abcResult.getProperty("max active pms") + ";" + abcResult.getProperty("average active pms") + ";" + 
