@@ -1,16 +1,21 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentInstance.Request;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine.State;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.CapacityChangeEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineController;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler.QueueingEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 
@@ -20,22 +25,30 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 	 * @author Rene Ponto
 	 */
 
-public class MultiTenantScheduler extends Scheduler {
+public class MultiTenantScheduler extends PhysicalMachineController {
 	
 	private int vaCounter = 1;
 	private List<ComponentType> types;
+	
+	private HashMap<ComponentInstance, VirtualMachine> mapping;		//TODO fill map while schedule is running
 
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
 		types = new ArrayList<ComponentType>();
 	}
-
+	
 	@Override
-	protected ConstantConstraints scheduleQueued() {
+	protected CapacityChangeEvent<PhysicalMachine> getHostRegEvent() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
+	@Override
+	protected QueueingEvent getQueueingEvent() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/**
 	 * Method to handle a new Request. The focus is on reusing existing instances instead of
 	 * creating new ones, but if that is not possible, new instances are deployed.
@@ -100,13 +113,9 @@ public class MultiTenantScheduler extends Scheduler {
 				} 
 				hostInstance.setVm(hostVm);
 				
-				// sort PMs ?? TODO
-//				the algorithm orders the PMs based on their power state:
-//				PMs that are turned on precede those that are turned
-//				off. Since we assume that secure PMs are a scarce resource,
-//				the algorithm aims to use non-secure PMs whenever possible.
-//				Therefore, within the two PM groups based on power state,
-//				we sort PMs such that non-secure ones precede secure ones
+				// sort PMs
+//				parent.machines.sort(runningToOffState);
+				parent.runningMachines.sort(nonsecureToSecure);
 				
 				//check if an existing pm can host the hostVm
 				PhysicalMachine hostPm = null;
@@ -134,6 +143,46 @@ public class MultiTenantScheduler extends Scheduler {
 		
 		return true;
 	}
+
+	/**
+	 * A PM comparator that orders PM from running to off. 
+	 * 
+	 * Should be finished.
+	 */
+	public static final Comparator<PhysicalMachine> runningToOffState = new Comparator<PhysicalMachine>() {
+		@Override
+		public int compare(PhysicalMachine o1, PhysicalMachine o2) {
+			if(o1.isRunning()) {		
+				return -o2.getState().compareTo(o1.getState());
+			}
+			else {
+				return -o1.getState().compareTo(o2.getState());
+			}			
+		}
+	};
+	
+	/**
+	 * A PM comparator that orders PM from nonsecure to secure. 
+	 * 
+	 * Should be finished.
+	 */
+	public static final Comparator<PhysicalMachine> nonsecureToSecure = new Comparator<PhysicalMachine>() {
+		@Override
+		public int compare(PhysicalMachine o1, PhysicalMachine o2) {
+			if(o1.isSecure()) {		
+				if(o2.isSecure())
+					return 0;
+				else
+					return -1;
+			}
+			else {
+				if(o2.isSecure())
+					return 1;
+				else
+					return 0;
+			}			
+		}
+	};
 
 	/**
 	 * Terminates a given Request and removes it from the ComponentInstance. Further it is implemented with
@@ -165,7 +214,7 @@ public class MultiTenantScheduler extends Scheduler {
 				}
 				
 				
-				if(host.isHostingVMs() == false) {
+				if(!host.isHostingVMs()) {
 					
 					//if the host PM is now empty, switch it off
 					try {
@@ -242,7 +291,7 @@ public class MultiTenantScheduler extends Scheduler {
 			}
 			
 			for(ComponentInstance instance : allInstancesOnVm) {
-				if(instance.isCustom() && instance.getTenants().size() > 1)
+				if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
 					return false;
 			}
 		}
@@ -258,7 +307,7 @@ public class MultiTenantScheduler extends Scheduler {
 				}
 			}
 			if(critOnVm) {
-				if(i.isCustom() && i.getTenants().get(0) != tenant) {
+				if(!i.getType().getProvidedBy().equals("Provider") && i.getTenants().get(0) != tenant) {
 					return false;
 				}
 			}
@@ -295,5 +344,7 @@ public class MultiTenantScheduler extends Scheduler {
 //		}
 		return false;
 	}
+
+	
 	
 }

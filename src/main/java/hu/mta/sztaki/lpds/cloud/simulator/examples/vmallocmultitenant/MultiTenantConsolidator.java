@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine.State;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator;
@@ -74,23 +75,23 @@ public class MultiTenantConsolidator extends Consolidator{
 			changed = false;
 			PhysicalMachine securePm = null;
 			for(PhysicalMachine pm : pms) {
-//				if(pm.isSecure() && pm.getState().equals(State.OFF)) {
-					securePm = pm;		//TODO has to be added to PhysicalMachine
+				if(pm.isSecure() && pm.getState().equals(State.OFF)) {
+					securePm = pm;
 					break;
-//				}
+				}
 			}
 			if(securePm != null) {
 				PhysicalMachine chosenPm1 = null;
 				PhysicalMachine chosenPm2 = null;
 				
 				for(PhysicalMachine pm1 : pms) {
-//					if(pm1.isSecure()) {
-//						continue;
-//					}
+					if(pm1.isSecure()) {
+						continue;
+					}
 					for(PhysicalMachine pm2 : pms) {
-//						if(pm2.isSecure()) {
-//							continue;
-//						}
+						if(pm2.isSecure()) {
+							continue;
+						}
 						if(pm1 == pm2) {
 							continue;
 						}						
@@ -134,8 +135,7 @@ public class MultiTenantConsolidator extends Consolidator{
 		}
 		// check if the load of a secure PM can be moved to a non-secure PM
 		for(PhysicalMachine pm : pms) {
-			if(/*pm.isSecure() && */pm.isRunning()) {
-				//TODO flag needed for secure
+			if(pm.isSecure() && pm.isRunning()) {
 				for(VirtualMachine vm : pm.listVMs()) {
 					//TODO
 				}

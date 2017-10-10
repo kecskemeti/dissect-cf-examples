@@ -25,8 +25,6 @@ public class ComponentInstance {
 
 	private ResourceConsumption consumption;
 	private AlterableResourceConstraints constraints;
-	
-	private boolean custom;
 
 	/**
 	 * The constructor.
@@ -39,14 +37,12 @@ public class ComponentInstance {
 	 * @param custom
 	 * 			Determines if this instance is a custom implementation.
 	 */
-	public ComponentInstance(String name, boolean crit, ComponentType componentType, boolean custom) {
+	public ComponentInstance(String name, boolean crit, ComponentType componentType) {
 		this.name = name;
 		this.vm = null;
 		this.crit = crit;
 		this.type = componentType;
 		constraints = type.getResources();
-		
-		this.custom = custom;
 		
 		//create a new job on the host VM
 		try {
@@ -54,10 +50,6 @@ public class ComponentInstance {
 		} catch (NetworkException e) {
 			e.printStackTrace();
 		}
-	}	
-	
-	public boolean isCustom() {
-		return custom;
 	}
 	
 	public Set<Request> getRequests() {
