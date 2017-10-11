@@ -12,9 +12,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine.State;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.CapacityChangeEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineController;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler.QueueingEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
@@ -30,7 +28,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	private int vaCounter = 1;
 	private List<ComponentType> types;
 	
-	private HashMap<ComponentInstance, VirtualMachine> mapping;		//TODO fill map while schedule is running
+	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		//TODO fill map while schedule is running
 
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
@@ -85,11 +83,12 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			
 			//get all existing VMs
 			List<VirtualMachine> vmList = new ArrayList<VirtualMachine>();
-			for(PhysicalMachine pm : parent.runningMachines) {
-				for(VirtualMachine vm : pm.listVMs()) {
-					vmList.add(vm);
-				}
-			}
+			vmList.addAll(mapping.keySet());
+//			for(PhysicalMachine pm : parent.runningMachines) {
+//				for(VirtualMachine vm : pm.listVMs()) {
+//					vmList.add(vm);
+//				}
+//			}
 			
 			//check if an existing VM can host the hostInstance
 			VirtualMachine hostVm = null;
@@ -115,7 +114,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 				
 				// sort PMs
 //				parent.machines.sort(runningToOffState);
-				parent.runningMachines.sort(nonsecureToSecure);
+				parent.runningMachines.sort(nonsecureToSecure);		// no need to sort from running to off
 				
 				//check if an existing pm can host the hostVm
 				PhysicalMachine hostPm = null;
@@ -280,16 +279,16 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 		}
 		
 		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
+		allInstancesOnVm.addAll(mapping.get(vm));
 		//if the instance is critical, there must not be a custom instance
 		if(i.isCritical()) {			
-			for(ComponentType type : types) {
-				for(ComponentInstance instance : type.getInstances()) {
-					if(instance.getVm() == vm) {
-						allInstancesOnVm.add(instance);
-					}
-				}
-			}
-			
+//			for(ComponentType type : types) {
+//				for(ComponentInstance instance : type.getInstances()) {
+//					if(instance.getVm() == vm) {
+//						allInstancesOnVm.add(instance);
+//					}
+//				}
+//			}			
 			for(ComponentInstance instance : allInstancesOnVm) {
 				if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
 					return false;
@@ -306,18 +305,20 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 					break;
 				}
 			}
-			if(critOnVm) {
+			if(critOnVm && tenant != "") {
 				if(!i.getType().getProvidedBy().equals("Provider") && i.getTenants().get(0) != tenant) {
 					return false;
 				}
 			}
+			else
+				return false;
 		}
 		
 		return true;
 	}
 	
 	/**
-	 * Not yet finished.
+	 * Should be finished.
 	 * @param pm
 	 * 			The PhysicalMachine which is going to be checked.
 	 * @param vm
@@ -336,13 +337,41 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 //		it is checked whether there is a component instance in the VM and another in the PM 
 //		or vice versa that would violate the data protection constraint
 		
-//		if(//TODO) {
-//			return false;
+		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
+		allInstancesOnVm.addAll(mapping.get(vm));
+//		for(ComponentType type : types) {
+//			for(ComponentInstance instance : type.getInstances()) {
+//				if(instance.getVm() == vm) {
+//					allInstancesOnVm.add(instance);
+//				}
+//			}
 //		}
-//		else {
-//			return true;
-//		}
-		return false;
+		
+		//check if there are critical instances on this VM
+		boolean hostsCriticals = false;
+		for(ComponentInstance instance : allInstancesOnVm) {
+			if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
+				hostsCriticals = true;
+		}		
+		
+		//check if the PM supports secure enclaves, so there can be critical instances of different hosts be hosted
+		if(hostsCriticals) {
+			if(!pm.isSecure())
+				return false;
+			
+			boolean cannotHost = false;
+			for(ComponentInstance instance : allInstancesOnVm) {
+				if(!instance.getType().isSgxSupported())
+					cannotHost = true;
+			}
+			
+			return !cannotHost;
+			
+			
+		}
+		else {
+			return true;
+		}
 	}
 
 	

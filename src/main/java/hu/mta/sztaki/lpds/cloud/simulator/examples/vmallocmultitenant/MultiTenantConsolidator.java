@@ -133,23 +133,30 @@ public class MultiTenantConsolidator extends Consolidator{
 				
 			}
 		}
-		// check if the load of a secure PM can be moved to a non-secure PM
-		for(PhysicalMachine pm : pms) {
-			if(pm.isSecure() && pm.isRunning()) {
-				for(VirtualMachine vm : pm.listVMs()) {
-					//TODO
+		boolean changed2 = true;
+		while(changed2) {
+			changed2 = false;
+			PhysicalMachine securePM = null;
+			PhysicalMachine unsecurePM = null;
+			// check if the load of a secure PM can be moved to a non-secure PM
+			for(PhysicalMachine pm : pms) {
+				if(securePM != null && unsecurePM != null)
+					break;
+				
+				if(pm.isSecure() && pm.isRunning() && securePM == null) {
+					securePM = pm;
+					continue;
+				}
+				if(!pm.isSecure() && !pm.isRunning() && unsecurePM == null) {
+					unsecurePM = pm;
+					continue;
 				}
 			}
-		}
-		
-//		while(/*bed*/) {
-//			PhysicalMachine unsecurePm;
-//			unsecurePm.turnon();
-//			for(int i = 0; i < securePm.publicVms.size(); i++) {
-//				//migrate
-//			}
-//			securePm.switchOff(null);
-//		}		
+			// TODO check instances on vms of secure pm if custom etc
+			
+		}		
 	}
+	
+	
 	
 }
