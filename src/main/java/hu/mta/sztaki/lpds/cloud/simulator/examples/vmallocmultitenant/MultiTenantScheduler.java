@@ -15,10 +15,22 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineController;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler.QueueingEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
+import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 
 	/**
+	 * A Scheduler supporting sgx. 
 	 * 
+	 * The algorithms in this class are taken out of the paper "Optimized Cloud 
+	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
+	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
+	 * 
+	 * TODO for improvement:
+	 * - Check whether the conversion is correct from VM to VM2
+	 * -- We may need a PM2 to do this correct, otherwise there could be problems with the types
+	 * - Logic for scheduling
+	 * - fill mapping while scheduling
+	 * - use ProcessRequest and TerminateRequest while scheduling
 	 * 
 	 * @author Rene Ponto
 	 */
@@ -28,7 +40,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	private int vaCounter = 1;
 	private List<ComponentType> types;
 	
-	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		//TODO fill map while schedule is running
+	private HashMap<VirtualMachine2, ArrayList<ComponentInstance>> mapping;		
 
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
@@ -37,13 +49,11 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	
 	@Override
 	protected CapacityChangeEvent<PhysicalMachine> getHostRegEvent() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected QueueingEvent getQueueingEvent() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -82,17 +92,12 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			hostInstance.addRequest(request);
 			
 			//get all existing VMs
-			List<VirtualMachine> vmList = new ArrayList<VirtualMachine>();
+			List<VirtualMachine2> vmList = new ArrayList<VirtualMachine2>();
 			vmList.addAll(mapping.keySet());
-//			for(PhysicalMachine pm : parent.runningMachines) {
-//				for(VirtualMachine vm : pm.listVMs()) {
-//					vmList.add(vm);
-//				}
-//			}
 			
 			//check if an existing VM can host the hostInstance
-			VirtualMachine hostVm = null;
-			for(VirtualMachine vm : vmList) {
+			VirtualMachine2 hostVm = null;
+			for(VirtualMachine2 vm : vmList) {
 				if(isVmAbleToHostInstance(vm, hostInstance)) {
 					hostVm = vm;
 					break;
@@ -103,17 +108,22 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 				hostInstance.setVm(hostVm);
 			}
 			else {
+				
+				//get a fitting repository
+				Repository target = parent.repositories.get(0);
+				
 				try {
+					//TODO this might be wrong and we need another way to do this
 					VirtualMachine[] vm = parent.requestVM(new VirtualAppliance(Integer.toString(vaCounter), 0, 0), 
-							hostInstance.getResources(), parent.repositories.get(0), 1);	//TODO is this correct?
-					hostVm = vm[0];
+							hostInstance.getResources(), target, 1);
+					VirtualMachine2 vm2 = convertVM(vm[0]);
+					hostVm = vm2;
 				} catch (VMManagementException | NetworkException e1) {
 					e1.printStackTrace();
 				} 
 				hostInstance.setVm(hostVm);
 				
 				// sort PMs
-//				parent.machines.sort(runningToOffState);
 				parent.runningMachines.sort(nonsecureToSecure);		// no need to sort from running to off
 				
 				//check if an existing pm can host the hostVm
@@ -129,7 +139,8 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 				}
 				if(hostPm != null) {
 					try {
-						hostPm.deployVM(hostVm, null, parent.repositories.get(0));		// TODO null, get(0)
+						hostPm.deployVM(hostVm, hostPm.allocateResources(hostVm.getResourceAllocation().allocated, false, 
+								PhysicalMachine.migrationAllocLen), parent.machines.get(0).localDisk);
 					} catch (VMManagementException | NetworkException e) {
 						e.printStackTrace();
 					}
@@ -141,6 +152,16 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Method to convert the created VM to a VM2.
+	 * @param vm
+	 * @return
+	 */
+	private VirtualMachine2 convertVM(VirtualMachine vm) {
+		VirtualMachine2 result = new VirtualMachine2(vm.getVa());		
+		return result;
 	}
 
 	/**
@@ -267,7 +288,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	 * 			The ComponentInstance which shall be hosted.
 	 * @return
 	 */
-	private boolean isVmAbleToHostInstance(VirtualMachine vm, ComponentInstance i) {
+	private boolean isVmAbleToHostInstance(VirtualMachine2 vm, ComponentInstance i) {
 		
 		//At first check the load of the PM which hosts the given VM. If there is not
 		//enough capacity to host the given ComponentInstance, return false.
@@ -281,14 +302,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
 		allInstancesOnVm.addAll(mapping.get(vm));
 		//if the instance is critical, there must not be a custom instance
-		if(i.isCritical()) {			
-//			for(ComponentType type : types) {
-//				for(ComponentInstance instance : type.getInstances()) {
-//					if(instance.getVm() == vm) {
-//						allInstancesOnVm.add(instance);
-//					}
-//				}
-//			}			
+		if(i.isCritical()) {					
 			for(ComponentInstance instance : allInstancesOnVm) {
 				if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
 					return false;
@@ -312,8 +326,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			}
 			else
 				return false;
-		}
-		
+		}		
 		return true;
 	}
 	
@@ -325,7 +338,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	 * 			The VirtualMachine which shall be hosted.
 	 * @return
 	 */
-	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine vm) {
+	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine2 vm) {
 		
 		//ensures that the aggregate size of the VMs remains below the capacity of the PM
 		if(!(pm.availableCapacities.getTotalProcessingPower() + vm.getResourceAllocation().allocated.getTotalProcessingPower() 
@@ -334,18 +347,11 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			return false;
 		}
 		
-//		it is checked whether there is a component instance in the VM and another in the PM 
-//		or vice versa that would violate the data protection constraint
+		//it is checked whether there is a component instance in the VM and another in the PM 
+		//or vice versa that would violate the data protection constraint
 		
 		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
 		allInstancesOnVm.addAll(mapping.get(vm));
-//		for(ComponentType type : types) {
-//			for(ComponentInstance instance : type.getInstances()) {
-//				if(instance.getVm() == vm) {
-//					allInstancesOnVm.add(instance);
-//				}
-//			}
-//		}
 		
 		//check if there are critical instances on this VM
 		boolean hostsCriticals = false;
@@ -363,17 +369,12 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			for(ComponentInstance instance : allInstancesOnVm) {
 				if(!instance.getType().isSgxSupported())
 					cannotHost = true;
-			}
-			
-			return !cannotHost;
-			
-			
+			}			
+			return !cannotHost;	
 		}
 		else {
 			return true;
 		}
 	}
-
-	
 	
 }

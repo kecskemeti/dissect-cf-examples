@@ -4,13 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 	/**
 	 * Instance of a ComponentType.
+	 * 
+	 * This class refers to the ComponentInstance out of the paper "Optimized Cloud 
+	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
+	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
+	 * 
+	 * TODO for improvement:
+	 * - Implement an object for the ConsumptionEvent e to get notified.
 	 * 
 	 * @author Rene Ponto
 	 */
@@ -19,7 +25,7 @@ public class ComponentInstance {
 	
 	private String name;
 	private boolean crit;
-	private VirtualMachine vm;
+	private VirtualMachine2 vm;
 	private ComponentType type;
     private Set<Request> requests;
 
@@ -43,13 +49,6 @@ public class ComponentInstance {
 		this.crit = crit;
 		this.type = componentType;
 		constraints = type.getResources();
-		
-		//create a new job on the host VM
-		try {
-			consumption = vm.newComputeTask(constraints.getTotalProcessingPower(), ResourceConsumption.unlimitedProcessing, null);	//TODO: null?
-		} catch (NetworkException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public Set<Request> getRequests() {
@@ -60,12 +59,13 @@ public class ComponentInstance {
 		return constraints;
 	}
 	
-	public VirtualMachine getVm() {
+	public VirtualMachine2 getVm() {
 		return vm;
 	}
 	
-	public void setVm(VirtualMachine vm) {
+	public void setVm(VirtualMachine2 vm) {
 		this.vm = vm;
+		vm.addInstance(this);
 		adjustTask();
 	}
 	

@@ -15,6 +15,16 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 	/**
 	 * A consolidator which supports secure enclaves on physical machines.
 	 * 
+	 * The algorithms in this class are taken out of the paper "Optimized Cloud 
+	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
+	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
+	 * 
+	 * TODO for improvement:
+	 * - change from VM to VM2
+	 * - implement missing features
+	 * - write test class
+	 * - implement last part of 'reoptimize'
+	 * 
 	 * @author Rene Ponto
 	 */
 
@@ -47,7 +57,7 @@ public class MultiTenantConsolidator extends Consolidator{
 				for(PhysicalMachine pm : pms) {
 					//TODO: MAY_PM_HOST_VM
 					if(pm.isHostableRequest(vm.getResourceAllocation().allocated)) {
-						pm.allocateResources(vm.getResourceAllocation().allocated, false, pm.migrationAllocLen);	// strict == false?
+						pm.allocateResources(vm.getResourceAllocation().allocated, false, pm.migrationAllocLen);
 						target = pm;
 						break;
 					}	

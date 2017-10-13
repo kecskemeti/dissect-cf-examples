@@ -8,6 +8,10 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceCons
 	/**
 	 * This class defines the type of a component, so there can be instances created of this type.
 	 * 
+	 * This class refers to the ComponentType out of the paper "Optimized Cloud 
+	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
+	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
+	 * 
 	 * @author Rene Ponto
 	 */
 
@@ -65,23 +69,7 @@ public class ComponentType {
 	public ComponentInstance createInstance(boolean crit) {
 		ComponentInstance inst;
 		String instanceName = name + Integer.toString(instanceCounter);
-		inst = new ComponentInstance(instanceName, crit, this, false);
-		instances.add(inst);
-		instanceCounter ++;
-		return inst;
-	}
-	
-	/**
-	 * Creates a custom ComponentInstance of this ComponentType and adds it to the set of instances.
-	 * Increases also the instanceCounter.
-	 * @param crit
-	 * 				Shall the instance host critical data?
-	 * @return The created ComponentInstance.
-	 */
-	public ComponentInstance createCustomInstance(boolean crit) {
-		ComponentInstance inst;
-		String instanceName = name + Integer.toString(instanceCounter);
-		inst = new ComponentInstance(instanceName, crit, this, true);
+		inst = new ComponentInstance(instanceName, crit, this);
 		instances.add(inst);
 		instanceCounter ++;
 		return inst;
