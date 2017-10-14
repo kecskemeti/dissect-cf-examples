@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
@@ -25,7 +26,7 @@ public class ComponentInstance {
 	
 	private String name;
 	private boolean crit;
-	private VirtualMachine2 vm;
+	private VirtualMachine vm;
 	private ComponentType type;
     private Set<Request> requests;
 
@@ -59,13 +60,12 @@ public class ComponentInstance {
 		return constraints;
 	}
 	
-	public VirtualMachine2 getVm() {
+	public VirtualMachine getVm() {
 		return vm;
 	}
 	
-	public void setVm(VirtualMachine2 vm) {
+	public void setVm(VirtualMachine vm) {
 		this.vm = vm;
-		vm.addInstance(this);
 		adjustTask();
 	}
 	

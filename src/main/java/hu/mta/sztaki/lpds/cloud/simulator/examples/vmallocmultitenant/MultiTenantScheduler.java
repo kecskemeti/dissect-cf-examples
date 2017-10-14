@@ -26,9 +26,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
 	 * 
 	 * TODO for improvement:
-	 * - Check whether the conversion is correct from VM to VM2
-	 * -- We may need a PM2 to do this correct, otherwise there could be problems with the types
-	 * - Logic for scheduling
+	 * - Implement logic for scheduling
 	 * - fill mapping while scheduling
 	 * - use ProcessRequest and TerminateRequest while scheduling
 	 * 
@@ -37,11 +35,16 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 
 public class MultiTenantScheduler extends PhysicalMachineController {
 	
+	/** Counter for creating virtual appliances*/
 	private int vaCounter = 1;
+	
+	/** Contains the existing component types*/
 	private List<ComponentType> types;
 	
-	private HashMap<VirtualMachine2, ArrayList<ComponentInstance>> mapping;		
+	/** Contains the mapping of VMs to their hosted component instances*/
+	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		
 
+	
 	public MultiTenantScheduler(IaaSService parent) {
 		super(parent);
 		types = new ArrayList<ComponentType>();
@@ -92,13 +95,13 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 			hostInstance.addRequest(request);
 			
 			//get all existing VMs
-			List<VirtualMachine2> vmList = new ArrayList<VirtualMachine2>();
+			List<VirtualMachine> vmList = new ArrayList<VirtualMachine>();
 			vmList.addAll(mapping.keySet());
 			
 			//check if an existing VM can host the hostInstance
-			VirtualMachine2 hostVm = null;
-			for(VirtualMachine2 vm : vmList) {
-				if(isVmAbleToHostInstance(vm, hostInstance)) {
+			VirtualMachine hostVm = null;
+			for(VirtualMachine vm : vmList) {
+				if(isVmAbleToHostInstance(vm, hostInstance, mapping)) {
 					hostVm = vm;
 					break;
 				}
@@ -116,8 +119,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 					//TODO this might be wrong and we need another way to do this
 					VirtualMachine[] vm = parent.requestVM(new VirtualAppliance(Integer.toString(vaCounter), 0, 0), 
 							hostInstance.getResources(), target, 1);
-					VirtualMachine2 vm2 = convertVM(vm[0]);
-					hostVm = vm2;
+					hostVm = vm[0];
 				} catch (VMManagementException | NetworkException e1) {
 					e1.printStackTrace();
 				} 
@@ -129,7 +131,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 				//check if an existing pm can host the hostVm
 				PhysicalMachine hostPm = null;
 				for(PhysicalMachine pm : parent.runningMachines) {
-					if(isPmAbleToHostVm(pm, hostVm)) {
+					if(isPmAbleToHostVm(pm, hostVm, mapping)) {
 						hostPm = pm;
 						if(pm.getState().equals(State.OFF))
 							pm.turnon();
@@ -152,16 +154,6 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 		}
 		
 		return true;
-	}
-	
-	/**
-	 * Method to convert the created VM to a VM2.
-	 * @param vm
-	 * @return
-	 */
-	private VirtualMachine2 convertVM(VirtualMachine vm) {
-		VirtualMachine2 result = new VirtualMachine2(vm.getVa());		
-		return result;
 	}
 
 	/**
@@ -286,9 +278,11 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	 * 			The VirtualMachine which is going to be checked.
 	 * @param i
 	 * 			The ComponentInstance which shall be hosted.
+	 * @param mapping
+	 * 			The actual mapping of VMs to ComponentInstances.
 	 * @return
 	 */
-	private boolean isVmAbleToHostInstance(VirtualMachine2 vm, ComponentInstance i) {
+	private boolean isVmAbleToHostInstance(VirtualMachine vm, ComponentInstance i, HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping) {
 		
 		//At first check the load of the PM which hosts the given VM. If there is not
 		//enough capacity to host the given ComponentInstance, return false.
@@ -336,9 +330,11 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 	 * 			The PhysicalMachine which is going to be checked.
 	 * @param vm
 	 * 			The VirtualMachine which shall be hosted.
+	 * @param mapping
+	 * 			The actual mapping of VMs to ComponentInstances.
 	 * @return
 	 */
-	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine2 vm) {
+	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine vm, HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping) {
 		
 		//ensures that the aggregate size of the VMs remains below the capacity of the PM
 		if(!(pm.availableCapacities.getTotalProcessingPower() + vm.getResourceAllocation().allocated.getTotalProcessingPower() 
@@ -348,8 +344,7 @@ public class MultiTenantScheduler extends PhysicalMachineController {
 		}
 		
 		//it is checked whether there is a component instance in the VM and another in the PM 
-		//or vice versa that would violate the data protection constraint
-		
+		//or vice versa that would violate the data protection constraint		
 		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
 		allInstancesOnVm.addAll(mapping.get(vm));
 		
