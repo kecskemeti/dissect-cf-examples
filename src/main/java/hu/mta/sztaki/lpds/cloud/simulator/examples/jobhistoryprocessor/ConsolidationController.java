@@ -34,6 +34,7 @@ public class ConsolidationController {
 	private String upperThreshold = "0.75";
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
+	private String seed = "123";
 	
 	private String trace;		
 	
@@ -64,6 +65,7 @@ public class ConsolidationController {
 		props.setProperty("upperThreshold", upperThreshold);
 		props.setProperty("lowerThreshold", lowerThreshold);
 		props.setProperty("mutationProb", mutationProb);
+		props.setProperty("seed", seed);
 		
 		//trace = props.getProperty(trace);
 		
