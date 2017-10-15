@@ -28,7 +28,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 	 * @author Rene Ponto
 	 */
 
-public class MultiTenantConsolidator extends Consolidator {
+public class MultiTenantConsolidator extends Consolidator implements Helpers {
 	
 	HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;
 
@@ -204,54 +204,6 @@ public class MultiTenantConsolidator extends Consolidator {
 				changed2 = true;
 			}			
 		}		
-	}
-	
-	/**
-	 * Should be finished.
-	 * @param pm
-	 * 			The PhysicalMachine which is going to be checked.
-	 * @param vm
-	 * 			The VirtualMachine which shall be hosted.
-	 * @param mapping
-	 * 			The actual mapping of VMs to ComponentInstances.
-	 * @return
-	 */
-	private boolean isPmAbleToHostVm(PhysicalMachine pm, VirtualMachine vm, HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping) {
-		
-		//ensures that the aggregate size of the VMs remains below the capacity of the PM
-		if(!(pm.availableCapacities.getTotalProcessingPower() + vm.getResourceAllocation().allocated.getTotalProcessingPower() 
-				<= pm.getCapacities().getTotalProcessingPower()) && !(pm.availableCapacities.getRequiredMemory() + 
-				vm.getResourceAllocation().allocated.getRequiredMemory() <= pm.getCapacities().getRequiredMemory())) {
-			return false;
-		}
-		
-		//it is checked whether there is a component instance in the VM and another in the PM 
-		//or vice versa that would violate the data protection constraint		
-		List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
-		allInstancesOnVm.addAll(mapping.get(vm));
-		
-		//check if there are critical instances on this VM
-		boolean hostsCriticals = false;
-		for(ComponentInstance instance : allInstancesOnVm) {
-			if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
-				hostsCriticals = true;
-		}		
-		
-		//check if the PM supports secure enclaves, so there can be critical instances of different hosts be hosted
-		if(hostsCriticals) {
-			if(!pm.isSecure())
-				return false;
-			
-			boolean cannotHost = false;
-			for(ComponentInstance instance : allInstancesOnVm) {
-				if(!instance.getType().isSgxSupported())
-					cannotHost = true;
-			}			
-			return !cannotHost;	
-		}
-		else {
-			return true;
-		}
 	}
 	
 }

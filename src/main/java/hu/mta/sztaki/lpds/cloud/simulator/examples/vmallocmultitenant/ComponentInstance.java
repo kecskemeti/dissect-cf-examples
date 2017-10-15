@@ -6,6 +6,7 @@ import java.util.Set;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
@@ -17,7 +18,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
 	 * 
 	 * TODO for improvement:
-	 * - Implement an object for the ConsumptionEvent e to get notified.
+	 * - Handle the ConsumptionEvent, at the moment it might be wrong.
 	 * 
 	 * @author Rene Ponto
 	 */
@@ -29,6 +30,7 @@ public class ComponentInstance {
 	private VirtualMachine vm;
 	private ComponentType type;
     private Set<Request> requests;
+    private ConsumptionEventAdapter e;
 
 	private ResourceConsumption consumption;
 	private AlterableResourceConstraints constraints;
@@ -50,6 +52,8 @@ public class ComponentInstance {
 		this.crit = crit;
 		this.type = componentType;
 		constraints = type.getResources();
+		
+		e = new ConsumptionEventAdapter();
 	}
 	
 	public Set<Request> getRequests() {
@@ -92,7 +96,7 @@ public class ComponentInstance {
 	private void adjustTask() {
 		this.consumption.cancel();
 		try {
-			consumption = vm.newComputeTask(constraints.getTotalProcessingPower(), ResourceConsumption.unlimitedProcessing, null);	//TODO: null?
+			consumption = vm.newComputeTask(constraints.getTotalProcessingPower(), ResourceConsumption.unlimitedProcessing, e);	
 		} catch (NetworkException e) {
 			e.printStackTrace();
 		}
