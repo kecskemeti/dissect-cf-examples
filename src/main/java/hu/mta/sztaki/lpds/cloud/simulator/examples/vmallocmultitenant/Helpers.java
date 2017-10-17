@@ -61,7 +61,14 @@ interface Helpers {
 	}
 	
 	/**
-	 * Should be finished.
+	 * Firstly it has to be checked that the load of the PMhosting the given VM does not
+	 * grow to large becouse of the new component instance. If the new component instance is 
+	 * a critical component dedicated to tenant x, then there must be no custom components 
+	 * created by another tenant in the VM and vice versa, if there is a critical component 
+	 * instance in the VM, then the new component instance must not be a custom component 
+	 * instance of a different tenant.
+	 * 
+	 * Should be finished. 
 	 * @param vm
 	 * 			The VirtualMachine which is going to be checked.
 	 * @param i
@@ -113,6 +120,13 @@ interface Helpers {
 	}
 	
 	/**
+	 * Firstly it has to be ensured that the aggregate size of the VMs remains below the capacity 
+	 * of the PM. Furthermore, it is checked whether there is a component instance in the VM and 
+	 * another in the PM or vice versa that would violate the data protection constraint, taking 
+	 * into account the criticality and custom nature of the components, as well as the security 
+	 * capabilities of the PM and whether the critical component could take advantage of such 
+	 * capabilities.
+	 * 
 	 * Should be finished.
 	 * @param pm
 	 * 			The PhysicalMachine which is going to be checked.

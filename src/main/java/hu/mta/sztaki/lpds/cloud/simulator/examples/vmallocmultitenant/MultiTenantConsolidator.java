@@ -22,8 +22,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
 	 * 
 	 * TODO for improvement:
-	 * - find a way to make the implementation'isPmAbleToHostVm' unique
-	 * - write test class
+	 * - write test cases inside the test class
 	 * 
 	 * @author Rene Ponto
 	 */
@@ -32,6 +31,17 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 	
 	HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;
 
+	/**
+	 * The constructor of this class. It expects a HashMap with the actual mapping of
+	 * VMs to ComponentInstances to work properly.
+	 * 
+	 * @param toConsolidate
+	 * 			The used IaaSService.
+	 * @param consFreq
+	 *          This value determines, how often the consolidation should run.	  				
+	 * @param mapping
+	 * 			The actual mapping of VMs to ComponentInstances.
+	 */
 	public MultiTenantConsolidator(IaaSService toConsolidate, long consFreq, HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping) {
 		super(toConsolidate, consFreq);
 		this.mapping = mapping;
@@ -48,6 +58,21 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 		}
 	}
 
+	/**
+	 * Inside this method the actual consolidation happens. Three kinds of optimization 
+	 * opportunities are explored:
+	 * 		- emptying an active PM by migrating all its VMs to some other already active PMs.
+	 * 		- if a secure PM can be switched on and take the load of two unsecure PMs, the load 
+	 * 		  gets migrated to the secure one, and the two emptied PMs can be switched off.
+	 * 		- if there is an active secure PM, the VMs of which would not need separation, then 
+	 * 		  they can all be migrated to a newly switched-on non-secure PM, and the secure PM 
+	 * 		  can be switched off.
+	 * 
+	 * @param pms
+	 * 			An array containing all existing PMs in the Iaas service.
+	 * @throws VMManagementException
+	 * @throws NetworkException
+	 */
 	@SuppressWarnings("static-access")
 	private void reoptimize(PhysicalMachine[] pms) throws VMManagementException, NetworkException {
 		
@@ -132,10 +157,8 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 							chosenPm2 = pm2;
 						}
 					}
-				}
-				
-				if(chosenPm1 != null && chosenPm2 != null) {
-					
+				}				
+				if(chosenPm1 != null && chosenPm2 != null) {					
 					Logger.getGlobal().info("Secure PM " + securePm.hashCode() + " takes load from PMs " + chosenPm1.hashCode() + 
 							" and " + chosenPm2.hashCode());
 					
@@ -148,6 +171,7 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 						chosenPm2.migrateVM(vm, securePm);
 					}
 					
+					//switch of the empty PMs
 					chosenPm1.switchoff(null);
 					chosenPm2.switchoff(null);
 					changed = true;
@@ -181,11 +205,10 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 			
 			// check if there are critical instances on the VMs, which means, they cannot run on a non-secure PM			
 			boolean hostsCriticals = false;			
-			for(VirtualMachine vm: securePM.publicVms) {
-				
-				if(hostsCriticals)
+			for(VirtualMachine vm: securePM.publicVms) {				
+				if(hostsCriticals) {
 					break;
-				
+				}
 				List<ComponentInstance> allInstancesOnVm = new ArrayList<ComponentInstance>();
 				allInstancesOnVm.addAll(mapping.get(vm));
 					
@@ -193,8 +216,7 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 				for(ComponentInstance instance : allInstancesOnVm) {
 					if(!instance.getType().getProvidedBy().equals("Provider") || instance.getTenants().size() > 1)
 						hostsCriticals = true;
-				}
-								
+				}								
 			}
 			
 			// if there is no possible injury of the safety, migrate all VMs from the secure PM to the non-secure one
@@ -205,5 +227,7 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 			}			
 		}		
 	}
+	
+	
 	
 }

@@ -7,6 +7,8 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceCons
 
 	/**
 	 * This class defines the type of a component, so there can be instances created of this type.
+	 * It is important to mention that the String 'providedBy' has to be filled with 'Provider'
+	 * if this type shall not define a custom implementation.
 	 * 
 	 * This class refers to the ComponentType out of the paper "Optimized Cloud 
 	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
@@ -17,19 +19,34 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceCons
 
 public class ComponentType {
 	
+	/** The name of this ComponentType. */
 	private String name;
+	
+	/** This string determines if this type is custom or not. If it is
+	 * 'Provider', it is no custom implementation. */
 	private String providedBy;
+	
+	/** The base constraints for hosting an instance of this type. */
 	private AlterableResourceConstraints cons;
+	
+	/** All actually existing instances of this type. */
 	private Set<ComponentInstance> instances;
+	
+	/** The counter for creating more instances of this type. */
 	private int instanceCounter;
+	
+	/** Determines if this ComponentType supports sgx. */
 	private boolean isSgxSupported;
 
 	/**
-	 * 
 	 * @param name
+	 * 			The name of this type.
 	 * @param providedBy
+	 * 			The provider of this type.
 	 * @param cons
+	 * 			The base ResourceConstraints.
 	 * @param sgxSupport
+	 * 			Determines the support of sgx.
 	 */
 	public ComponentType(String name, String providedBy, AlterableResourceConstraints cons, boolean sgxSupport) {
 		this.name = name;
@@ -39,22 +56,42 @@ public class ComponentType {
 		instanceCounter = 0;		
 	}
 	
+	/**
+	 * 
+	 * @return Name of this type.
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * 
+	 * @return The Provider of this type. If not custom, it is 'Provider'.
+	 */
 	public String getProvidedBy() {
 		return providedBy;
 	}
 	
+	/**
+	 * 
+	 * @return The necessary resources to host this type.
+	 */
 	public AlterableResourceConstraints getResources() {
 		return cons;
 	}
 	
+	/**
+	 * 
+	 * @return The set of all existing ComponentInstances of this type.
+	 */
 	public Set<ComponentInstance> getInstances() {
 		return instances;
 	}
 	
+	/**
+	 * 
+	 * @return true if this type supports sgx.
+	 */
 	public boolean isSgxSupported() {
 		return isSgxSupported;
 	}

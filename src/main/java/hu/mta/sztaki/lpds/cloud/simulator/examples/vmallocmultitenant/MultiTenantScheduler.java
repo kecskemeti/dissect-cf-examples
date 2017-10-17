@@ -63,6 +63,7 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 	/**
 	 * Method to handle a new Request. The focus is on reusing existing instances instead of
 	 * creating new ones, but if that is not possible, new instances are deployed.
+	 * 
 	 * @param request
 	 * 					The arriving Request.
 	 * @param c
@@ -105,16 +106,14 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 					hostVm = vm;
 					break;
 				}
-			}
-			
+			}			
 			if(hostVm != null) {
 				hostInstance.setVm(hostVm);
 			}
 			else {
 				
 				//get a fitting repository
-				Repository target = parent.repositories.get(0);
-				
+				Repository target = parent.repositories.get(0);				
 				try {
 					VirtualMachine[] vm = parent.requestVM(new VirtualAppliance(Integer.toString(vaCounter), 0, 0), 
 							hostInstance.getResources(), target, 1);
@@ -133,8 +132,7 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 					if(isPmAbleToHostVm(pm, hostVm, mapping)) {
 						hostPm = pm;
 						if(pm.getState().equals(State.OFF))
-							pm.turnon();
-						
+							pm.turnon();						
 						break;
 					}
 				}
@@ -147,11 +145,9 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 					}
 				}
 				else
-					return false;
-				
+					return false;				
 			}
-		}
-		
+		}		
 		return true;
 	}
 
@@ -200,6 +196,7 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 	 * the intention to save energy, so it is checked if the instance has no other requests running in order to remove
 	 * it. This is also done with the hosting VM and the host PM, which are shut down, too, if there are no tasks left
 	 * for them.
+	 * 
 	 * @param r
 	 * 			The given Request which is going to be terminated.
 	 * @param c
@@ -214,9 +211,9 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 			//remove the instance which belongs to the request
 			c.getType().removeInstance(c);
 			
+			//remove the VM if there are no instances running and because of that no
+			//resources used
 			if(c.getVm().getResourceAllocation() == null) {	
-				
-				//remove the VM if there are no instances running
 				PhysicalMachine host = c.getVm().getResourceAllocation().getHost();
 				try {
 					host.terminateVM(c.getVm(), true);
@@ -224,18 +221,15 @@ public class MultiTenantScheduler extends PhysicalMachineController implements H
 					e1.printStackTrace();
 				}
 				
-				
+				//if the host PM is now empty, switch it off
 				if(!host.isHostingVMs()) {
-					
-					//if the host PM is now empty, switch it off
 					try {
 						host.switchoff(null);
 					} catch (VMManagementException | NetworkException e) {
 						e.printStackTrace();
 					}
 				}
-			}
-			
+			}			
 		}
 	}
 	

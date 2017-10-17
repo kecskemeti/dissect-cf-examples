@@ -11,7 +11,8 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 	/**
-	 * Instance of a ComponentType.
+	 * Instance of a ComponentType. It is hosted on a specific VM as a 
+	 * ComputeTask.
 	 * 
 	 * This class refers to the ComponentInstance out of the paper "Optimized Cloud 
 	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
@@ -25,14 +26,28 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 public class ComponentInstance {
 	
+	/** The name of this instance. */
 	private String name;
+	
+	/** Determines if this instance hosts critical data. */
 	private boolean crit;
+	
+	/** The hosting VM. */
 	private VirtualMachine vm;
+	
+	/** Determines the type of this instance. */
 	private ComponentType type;
+	
+	/** All existing requests of this instance. */
     private Set<Request> requests;
+    
+    /** TODO */
     private ConsumptionEventAdapter e;
 
+    /** Represents the actual resource consumption. */
 	private ResourceConsumption consumption;
+	
+	/** The base resource need because of the type of this instance. */
 	private AlterableResourceConstraints constraints;
 
 	/**
@@ -53,38 +68,71 @@ public class ComponentInstance {
 		this.type = componentType;
 		constraints = type.getResources();
 		
+		// TODO
 		e = new ConsumptionEventAdapter();
 	}
 	
+	/**
+	 * 
+	 * @return All existing requests.
+	 */
 	public Set<Request> getRequests() {
 		return requests;
 	}
 	
+	/** 
+	 * 
+	 * @return The base constraints.
+	 */
 	public AlterableResourceConstraints getResources() {
 		return constraints;
 	}
 	
+	/**
+	 * 
+	 * @return The hosting VM of this instance.
+	 */
 	public VirtualMachine getVm() {
 		return vm;
 	}
 	
+	/**
+	 * Sets the VM and adjusts the resource consumption.
+	 * @param vm
+	 */
 	public void setVm(VirtualMachine vm) {
 		this.vm = vm;
 		adjustTask();
 	}
 	
+	/**
+	 * 
+	 * @return The name of this instance for identifying.
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * 
+	 * @return The type of this instance.
+	 */
 	public ComponentType getType() {
 		return type;
 	}
 	
+	/**
+	 * 
+	 * @return True if this instance hosts critical data.
+	 */
 	public boolean isCritical() {
 		return crit;
 	}	
 	
+	/**
+	 * 
+	 * @return The actual consumption regarding to the tenants of this instance.
+	 */
 	public ResourceConsumption getConsumption() {
 		return consumption;
 	}
@@ -178,7 +226,12 @@ public class ComponentInstance {
 		return s;
 	}
 	
-	
+	/**
+	 * This class represents a request of a ComponentType.
+	 * 
+	 * @author Rene Ponto
+	 *
+	 */
 	class Request {
 		
 		private String tenant;
@@ -187,17 +240,27 @@ public class ComponentInstance {
 		/**
 		 * Defines a Request for a ComponentInstance from a tenant.
 		 * @param tenant
+		 * 			The name of the requesting tenant.
 		 * @param cons
+		 * 			The requested resources.
 		 */
 		public Request(String tenant, AlterableResourceConstraints cons) {
 			this.tenant = tenant;
 			this.cons = cons;
 		}
 		
+		/**
+		 * 
+		 * @return The name of the tenant.
+		 */
 		public String getTenant() {
 			return tenant;
 		}
 		
+		/**
+		 * 
+		 * @return The AlterableResourceConstraints with the requested resources.
+		 */
 		public AlterableResourceConstraints getResources() {
 			return cons;
 		}
