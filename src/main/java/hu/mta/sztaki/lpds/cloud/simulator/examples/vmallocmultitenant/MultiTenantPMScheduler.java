@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
-import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentInstance.Request;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request;
 import hu.mta.sztaki.lpds.cloud.simulator.helpers.job.Job;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
@@ -43,16 +44,16 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 
 public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler implements Helpers {
 	
-	/** Counter for creating virtual appliances*/
+	/** Counter for creating virtual appliances. */
 	private int vaCounter = 1;
 	
-	/** Contains the existing component types*/
+	/** Contains the existing component types. */
 	private List<ComponentType> types;
 	
-	/** Contains the mapping of VMs to their hosted component instances*/
+	/** Contains the mapping of VMs to their hosted component instances. */
 	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		
 	
-	/** Used for creating all necessary component types*/
+	/** Used for creating all necessary component types. */
 	private HashMap<String, ArrayList<String>> initialCompTypes;
 
 	
@@ -75,18 +76,67 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 		}
 	}
 	
+	/** The existing tenants. */
+	private String[] tenants = new String[]{"A","B","C"};
+	
 	/**
 	 * Maybe move this to the VMScheduler...
 	 * 
 	 * Has to be called after a new Job arrives. It generates a request with the
-	 * given amount of resources, duration etc.. After that the request will be
-	 * handled by the PMScheduler.
+	 * given values, the size of the Job has to be used as component size increase,
+	 * the finishing of a Job has to be mapped to a terminateRequest etc.
+	 * 
+	 * After that the request will be handled by the PMScheduler.
+	 * 
+	 * Since the workload trace does not contain all information we need, we 
+	 * generated the missing information as follows:
+	 * 
+	 * - Each job gets marked as critical with probability pcrit.
+	 * - Each job gets marked as custom with probability pcust.
+	 * - Each job gets marked as capable of using secure enclaves with probability pcap.
+	 * - Each job has to be assigned randomly to one of the tenants.
+	 * 
+	 * The marking actually happens in the generated request.
 	 * 
 	 * TODO
 	 */
-	private void generateRequest(Job job) {
-		List<String> req = new ArrayList<String>();
+	private Request mappingRequestToJob(Job job) {	
+		Random random = new Random(123);
 		
+		String tenant;
+		boolean crit = false;
+		boolean custom = false;
+		boolean supportsSecureEnclaves = false;
+		
+		// determine the tenant who sends the job		
+		double probability = random.nextDouble();
+		if(probability < 0.33) {
+			tenant = tenants[0];
+		}
+		else {
+			if(probability > 0.67) {
+				tenant = tenants[1];
+			}
+			else {
+				tenant = tenants[2];
+			}
+		}
+		
+		// determine whether the tenant's request contains criticality, a custom component
+		// instance or the possibilty to use secure enclaves.
+		if(random.nextBoolean()) {
+			crit = true;
+		}
+		if(random.nextBoolean()) {
+			custom = true;
+		}
+		if(random.nextBoolean()) {
+			supportsSecureEnclaves = true;
+		}
+		
+		Request request = new Request(tenant, null, crit, custom, supportsSecureEnclaves);
+		return request;
+		// c++ code: main, read_gwf_file
 	}
 	
 	/**
@@ -273,6 +323,7 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 					return false;				
 			}
 		}		
+		// if there are no problems, we get this
 		return true;
 	}
 

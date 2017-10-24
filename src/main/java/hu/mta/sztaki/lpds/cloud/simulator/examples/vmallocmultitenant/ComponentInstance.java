@@ -225,45 +225,5 @@ public class ComponentInstance {
 		}
 		return s;
 	}
-	
-	/**
-	 * This class represents a request of a ComponentType.
-	 * 
-	 * @author Rene Ponto
-	 *
-	 */
-	class Request {
-		
-		private String tenant;
-		private AlterableResourceConstraints cons;
-		
-		/**
-		 * Defines a Request for a ComponentInstance from a tenant.
-		 * @param tenant
-		 * 			The name of the requesting tenant.
-		 * @param cons
-		 * 			The requested resources.
-		 */
-		public Request(String tenant, AlterableResourceConstraints cons) {
-			this.tenant = tenant;
-			this.cons = cons;
-		}
-		
-		/**
-		 * 
-		 * @return The name of the tenant.
-		 */
-		public String getTenant() {
-			return tenant;
-		}
-		
-		/**
-		 * 
-		 * @return The AlterableResourceConstraints with the requested resources.
-		 */
-		public AlterableResourceConstraints getResources() {
-			return cons;
-		}
-	}
 
 }
