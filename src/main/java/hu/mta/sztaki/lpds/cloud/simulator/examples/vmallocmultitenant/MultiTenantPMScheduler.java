@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.Vector;
 
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request;
-import hu.mta.sztaki.lpds.cloud.simulator.helpers.job.Job;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine.State;
@@ -16,6 +14,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler.QueueingEvent;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
@@ -34,10 +33,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 	 * - fill mapping while scheduling
 	 * - use ProcessRequest and TerminateRequest while scheduling
 	 * - change Job/VM mapping because of components
-	 * - maybe make the creating of component types more dynamic
-	 * - moving the creation of requests and component types to another class
 	 * - finish generateRequest()
-	 * - find a way to handle the multi_size of c++ code
 	 * 
 	 * @author Rene Ponto
 	 */
@@ -48,157 +44,38 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 	private int vaCounter = 1;
 	
 	/** Contains the existing component types. */
-	private List<ComponentType> types;
+	private static ArrayList<ComponentType> types;
 	
 	/** Contains the mapping of VMs to their hosted component instances. */
 	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		
 	
-	/** Used for creating all necessary component types. */
-	private HashMap<String, ArrayList<String>> initialCompTypes;
-
-	
+		
 	public MultiTenantPMScheduler(IaaSService parent) {
 		super(parent);
-		types = new ArrayList<ComponentType>();
+	}
+	
+	/**
+	 * All needed component types get instantiated 
+	 * @param initialCompTypes
+	 */
+	public static void instantiateTypes(HashMap<String, ArrayList<String>> initialCompTypes) {
 		
-		// create the component types
-		instantiateTypes();		
+		types.clear();
 		for(String type : initialCompTypes.keySet()) {
 			
 			String provider = initialCompTypes.get(type).get(0);
-			int first = Integer.parseInt(initialCompTypes.get(type).get(1));
-			int second = Integer.parseInt(initialCompTypes.get(type).get(2));
-			int third = Integer.parseInt(initialCompTypes.get(type).get(3));
+			double first = Double.parseDouble(initialCompTypes.get(type).get(1));
+			double second = Double.parseDouble(initialCompTypes.get(type).get(2));
+			long third = Long.parseLong(initialCompTypes.get(type).get(3));
 			boolean fourth = Boolean.getBoolean(initialCompTypes.get(type).get(4));
 			
-			ComponentType compType = new ComponentType(type, provider, new AlterableResourceConstraints(first, second, third), fourth);
+			ComponentType compType = new ComponentType(type, provider, new ResourceVector(first, second, third), fourth);
 			types.add(compType);
 		}
 	}
 	
-	/** The existing tenants. */
-	private String[] tenants = new String[]{"A","B","C"};
-	
-	/**
-	 * Maybe move this to the VMScheduler...
-	 * 
-	 * Has to be called after a new Job arrives. It generates a request with the
-	 * given values, the size of the Job has to be used as component size increase,
-	 * the finishing of a Job has to be mapped to a terminateRequest etc.
-	 * 
-	 * After that the request will be handled by the PMScheduler.
-	 * 
-	 * Since the workload trace does not contain all information we need, we 
-	 * generated the missing information as follows:
-	 * 
-	 * - Each job gets marked as critical with probability pcrit.
-	 * - Each job gets marked as custom with probability pcust.
-	 * - Each job gets marked as capable of using secure enclaves with probability pcap.
-	 * - Each job has to be assigned randomly to one of the tenants.
-	 * 
-	 * The marking actually happens in the generated request.
-	 * 
-	 * TODO
-	 */
-	private Request mappingRequestToJob(Job job) {	
-		Random random = new Random(123);
-		
-		String tenant;
-		boolean crit = false;
-		boolean custom = false;
-		boolean supportsSecureEnclaves = false;
-		
-		// determine the tenant who sends the job		
-		double probability = random.nextDouble();
-		if(probability < 0.33) {
-			tenant = tenants[0];
-		}
-		else {
-			if(probability > 0.67) {
-				tenant = tenants[1];
-			}
-			else {
-				tenant = tenants[2];
-			}
-		}
-		
-		// determine whether the tenant's request contains criticality, a custom component
-		// instance or the possibilty to use secure enclaves.
-		if(random.nextBoolean()) {
-			crit = true;
-		}
-		if(random.nextBoolean()) {
-			custom = true;
-		}
-		if(random.nextBoolean()) {
-			supportsSecureEnclaves = true;
-		}
-		
-		Request request = new Request(tenant, null, crit, custom, supportsSecureEnclaves);
-		return request;
-		// c++ code: main, read_gwf_file
-	}
-	
-	/**
-	 * This method creates all component types which are originally created inside the
-	 * requests-file of the C++ version.
-	 */
-	private void instantiateTypes() {
-		ArrayList<String> list = new ArrayList<String>();
-		list.add("Provider");		
-		list.add("0");
-		list.add("0");	// TODO base size [20,200]
-		list.add("0");
-		list.add("true");
-		initialCompTypes.put("StoreMgr", list);
-		
-		ArrayList<String> list2 = new ArrayList<String>();
-		list2.add("A");		
-		list2.add("0");
-		list2.add("0");	// TODO base size [10,100]
-		list2.add("0");
-		list2.add("true");
-		initialCompTypes.put("StoreMgrA", list2);
-		
-		ArrayList<String> list3 = new ArrayList<String>();
-		list3.add("Provider");		
-		list3.add("0");
-		list3.add("0"); // TODO base size [25,500]
-		list3.add("0");
-		list3.add("true");
-		initialCompTypes.put("Inventory", list3);
-		
-		ArrayList<String> list4 = new ArrayList<String>();
-		list4.add("Provider");		
-		list4.add("0");
-		list4.add("0"); // TODO base size [10,150]
-		list4.add("0");
-		list4.add("true");
-		initialCompTypes.put("Reporting", list4);
-		
-		ArrayList<String> list5 = new ArrayList<String>();
-		list5.add("Provider");		
-		list5.add("0");
-		list5.add("0"); // TODO base size [20,200]
-		list5.add("0");
-		list5.add("true");
-		initialCompTypes.put("ProductDispatcher", list5);
-		
-		ArrayList<String> list6 = new ArrayList<String>();
-		list6.add("Provider");		
-		list6.add("0");
-		list6.add("0"); // TODO base size [20,200]
-		list6.add("0");
-		list6.add("true");
-		initialCompTypes.put("PickUpShop", list6);
-		
-		ArrayList<String> list7 = new ArrayList<String>();
-		list7.add("Provider");		
-		list7.add("0");
-		list7.add("0"); // TODO base size [20,100]
-		list7.add("0");
-		list7.add("true");
-		initialCompTypes.put("Loyalty", list7);
+	public static ArrayList<ComponentType> getTypes() {
+		return types;
 	}
 	
 	/**

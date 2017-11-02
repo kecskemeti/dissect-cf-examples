@@ -1,6 +1,6 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
 /**
  * This class represents a request of a ComponentType. The variables of a request
@@ -11,19 +11,31 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceCons
 class Request {
 	
 	private String tenant;
-	private AlterableResourceConstraints cons;
+	private ComponentType type;
+	private ResourceVector cons;
 	private boolean crit;
 	private boolean custom;
 	private boolean supportsSecureEnclaves;
+
+
 	/**
 	 * Defines a Request for a ComponentInstance from a tenant.
 	 * @param tenant
 	 * 			The name of the requesting tenant.
+	 * @param type
+	 * 			The requested component type.
 	 * @param cons
 	 * 			The requested resources.
+	 * @param crit
+	 * 			Determines the criticality of this request.
+	 * @param custom
+	 * 			Determines the usage of a custom component type.
+	 * @param supportsSecureEnclaves
+	 * 			Determines the support of secure enclaves.
 	 */
-	public Request(String tenant, AlterableResourceConstraints cons, boolean crit, boolean custom, boolean supportsSecureEnclaves) {
+	public Request(String tenant, ComponentType type, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves) {
 		this.tenant = tenant;
+		this.type = type;
 		this.cons = cons;
 		this.crit = crit;
 		this.custom = custom;
@@ -40,15 +52,23 @@ class Request {
 	
 	/**
 	 * 
-	 * @return The AlterableResourceConstraints with the requested resources.
+	 * @return The requested ComponentType.
 	 */
-	public AlterableResourceConstraints getResources() {
+	public ComponentType getComponentType() {
+		return type;
+	}
+	
+	/**
+	 * 
+	 * @return The ResourceVector with the requested resources.
+	 */
+	public ResourceVector getResources() {
 		return cons;
 	}
 	
 	/**
 	 * 
-	 * @return
+	 * @return True if critical data is stored.
 	 */
 	public boolean isCrit() {
 		return crit;
@@ -56,7 +76,7 @@ class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return True if a custom component type shall be used.
 	 */
 	public boolean isCustom() {
 		return custom;
@@ -64,7 +84,7 @@ class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return True if secure enclaves are supported.
 	 */
 	public boolean supportsSecureEnclaves() {
 		return supportsSecureEnclaves;

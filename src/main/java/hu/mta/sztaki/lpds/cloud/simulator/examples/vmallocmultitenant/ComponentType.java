@@ -3,7 +3,7 @@ package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
 	/**
 	 * This class defines the type of a component, so there can be instances created of this type.
@@ -27,7 +27,7 @@ public class ComponentType {
 	private String providedBy;
 	
 	/** The base constraints for hosting an instance of this type. */
-	private AlterableResourceConstraints cons;
+	private ResourceVector cons;
 	
 	/** All actually existing instances of this type. */
 	private Set<ComponentInstance> instances;
@@ -48,7 +48,7 @@ public class ComponentType {
 	 * @param sgxSupport
 	 * 			Determines the support of sgx.
 	 */
-	public ComponentType(String name, String providedBy, AlterableResourceConstraints cons, boolean sgxSupport) {
+	public ComponentType(String name, String providedBy, ResourceVector cons, boolean sgxSupport) {
 		this.name = name;
 		this.cons = cons;
 		this.providedBy = providedBy;
@@ -76,7 +76,7 @@ public class ComponentType {
 	 * 
 	 * @return The necessary resources to host this type.
 	 */
-	public AlterableResourceConstraints getResources() {
+	public ResourceVector getResources() {
 		return cons;
 	}
 	

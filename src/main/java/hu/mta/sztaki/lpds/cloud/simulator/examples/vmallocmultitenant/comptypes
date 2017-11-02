@@ -1,0 +1,8 @@
+#name providedBy base_size isSgxSupported
+StoreMgr Provider 20 200 yes
+StoreMgrA A 10 100 yes
+Inventory Provider 25 500 yes
+Reporting Provider 10 150 yes
+ProductDispatcher Provider 20 200 yes
+PickUpShop Provider 20 200 yes
+Loyalty Provider 20 100 yes

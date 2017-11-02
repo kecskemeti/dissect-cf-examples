@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Set;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 	/**
@@ -48,7 +48,7 @@ public class ComponentInstance {
 	private ResourceConsumption consumption;
 	
 	/** The base resource need because of the type of this instance. */
-	private AlterableResourceConstraints constraints;
+	private ResourceVector constraints;
 
 	/**
 	 * The constructor.
@@ -84,7 +84,7 @@ public class ComponentInstance {
 	 * 
 	 * @return The base constraints.
 	 */
-	public AlterableResourceConstraints getResources() {
+	public ResourceVector getResources() {
 		return constraints;
 	}
 	
