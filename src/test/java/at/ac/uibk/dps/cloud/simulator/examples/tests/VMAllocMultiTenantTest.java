@@ -169,7 +169,6 @@ public class VMAllocMultiTenantTest extends IaaSRelatedFoundation {
 		ArrayList<ComponentType> results = MultiTenantPMScheduler.getTypes();
 		
 		Assert.assertEquals(7, results.size());
-		Assert.assertEquals(7, results.size());
 	}
 	
 	@Test(timeout = 1000)
