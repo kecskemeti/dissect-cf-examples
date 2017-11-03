@@ -1,6 +1,6 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
-import java.util.Set;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
@@ -30,7 +30,7 @@ public class ComponentType {
 	private ResourceVector cons;
 	
 	/** All actually existing instances of this type. */
-	private Set<ComponentInstance> instances;
+	private HashSet<ComponentInstance> instances;
 	
 	/** The counter for creating more instances of this type. */
 	private int instanceCounter;
@@ -54,6 +54,8 @@ public class ComponentType {
 		this.providedBy = providedBy;
 		this.isSgxSupported = sgxSupport;
 		instanceCounter = 0;		
+		
+		instances = new HashSet<ComponentInstance>();
 	}
 	
 	/**
@@ -84,7 +86,7 @@ public class ComponentType {
 	 * 
 	 * @return The set of all existing ComponentInstances of this type.
 	 */
-	public Set<ComponentInstance> getInstances() {
+	public HashSet<ComponentInstance> getInstances() {
 		return instances;
 	}
 	

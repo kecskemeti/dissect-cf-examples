@@ -125,7 +125,7 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 	 * @return true if the Request is handled correctly, false if there not enough capacities or
 	 * similar problems.
 	 */
-	private boolean processRequest(Request request, ComponentType c, boolean crit) {
+	public boolean processRequest(Request request, ComponentType c, boolean crit) {
 		
 		//add the ComponentType to a list to work with them later
 		if(!types.contains(c)) {
@@ -255,7 +255,7 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 	 * @param c
 	 * 			The hosting ComponentInstance of the Request.
 	 */
-	private void terminateRequest(Request r, ComponentInstance c) {
+	public void terminateRequest(Request r, ComponentInstance c) {
 		
 		//remove request		
 		c.removeRequest(r);
