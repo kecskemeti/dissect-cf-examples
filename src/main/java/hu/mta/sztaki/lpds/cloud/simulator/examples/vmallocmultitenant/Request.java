@@ -13,9 +13,8 @@ class Request {
 	private String tenant;
 	private ComponentType type;
 	private ResourceVector cons;
-	private boolean crit;
-	private boolean custom;
-	private boolean supportsSecureEnclaves;
+	private boolean crit, custom, supportsSecureEnclaves;
+	private double startTime, duration;
 
 
 	/**
@@ -32,14 +31,22 @@ class Request {
 	 * 			Determines the usage of a custom component type.
 	 * @param supportsSecureEnclaves
 	 * 			Determines the support of secure enclaves.
+	 * @param startTime
+	 * 			The time where this request occur.
+	 * @param duration
+	 * 			The duration of this request.
 	 */
-	public Request(String tenant, ComponentType type, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves) {
+	public Request(String tenant, ComponentType type, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves, 
+			double startTime, double duration) {
+		
 		this.tenant = tenant;
 		this.type = type;
 		this.cons = cons;
 		this.crit = crit;
 		this.custom = custom;
 		this.supportsSecureEnclaves = supportsSecureEnclaves;
+		this.startTime = startTime;
+		this.duration = duration;
 	}
 	
 	/**
@@ -88,5 +95,21 @@ class Request {
 	 */
 	public boolean supportsSecureEnclaves() {
 		return supportsSecureEnclaves;
+	}
+	
+	/**
+	 * 
+	 * @return The duration of fulfilling this Request.
+	 */
+	public double getDuration() {
+		return duration;
+	}
+	
+	/**
+	 * 
+	 * @return The time where the request shall occur.
+	 */
+	public double getStartTime() {
+		return startTime;
 	}
 }

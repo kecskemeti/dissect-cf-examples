@@ -44,7 +44,7 @@ public class MultiTenantPMScheduler extends ConsolidationFriendlyPmScheduler imp
 	private int vaCounter = 1;
 	
 	/** Contains the existing component types. */
-	private static ArrayList<ComponentType> types;
+	private static ArrayList<ComponentType> types = new ArrayList<ComponentType>();
 	
 	/** Contains the mapping of VMs to their hosted component instances. */
 	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;		

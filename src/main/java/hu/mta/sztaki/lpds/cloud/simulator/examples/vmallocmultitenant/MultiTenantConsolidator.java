@@ -20,10 +20,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 	 * The algorithms in this class are taken out of the paper "Optimized Cloud 
 	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
 	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
-	 * 
-	 * TODO for improvement:
-	 * - write test cases inside the test class
-	 * 
+	 *
 	 * @author Rene Ponto
 	 */
 

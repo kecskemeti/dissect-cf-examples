@@ -1,58 +1,61 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import hu.mta.sztaki.lpds.cloud.simulator.helpers.job.Job;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
 public class MultiTenantController {
 	
 	//pm_size=[400 16000] TODO
 	
+	
 	/** The existing tenants. */
-	private String[] tenants = new String[]{"A","B","C"};
+//	private String[] tenants = new String[]{"A","B","C"};
 
 	/** Used for creating all necessary component types. */
 	private HashMap<String, ArrayList<String>> initialCompTypes;
 	
 	/** Used for creating all necessary requests. */
 	private List<Request> initialRequests;
-	
+	Random random;
 	
 	public MultiTenantController() {
+		random = new Random(123);
+		
+		initialCompTypes = new HashMap<String, ArrayList<String>>();
 		initialRequests = new ArrayList<Request>();
 	}
 	
-	public void main(int[] args) {
-		
-		readCompTypes();
-		readRequests();
+	public void main(int[] args) {	
 		doOneRound();
 	}
 	
 	/**
-	 * Should be finished.
+	 * Reads the comptypes.txt file to set the different component types inside the MultiTenantPMScheduler for
+	 * initialising this scheduler to work properly. Otherwise there would be problems with arriving requests
+	 * of those component types. The path is set relative, so there are no problems on different platforms.
 	 */
-	private void readCompTypes() {
-		String filePath = new File("").getAbsolutePath();
+	public void readCompTypes() {
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader
-					(filePath + "/src/main/java/hu/mta/sztaki/lpds/cloud/simulator/examples/vmallocmultitenant/comptypes.txt"));
+			Path path = Paths.get("src/main/java/hu/mta/sztaki/lpds/cloud/simulator/examples/vmallocmultitenant/comptypes.txt");			
+			reader = new BufferedReader(new FileReader(path.toString()));
 			
 			String line = null;         
 		    while ((line = reader.readLine()) != null) {
 		    	if(line.startsWith("#"))
 					continue;
 		    	
+		    	// we use the whitespace to seperate the different values
 		    	String[] strings = line.split(" ");
 		    	ArrayList<String> list = new ArrayList<String>();
 		    	
@@ -67,56 +70,78 @@ public class MultiTenantController {
 		    reader.close();
 		    MultiTenantPMScheduler.instantiateTypes(initialCompTypes);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException("This path is not leading to the wanted file.", e);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} 
 		
 	}
 
 	/**
-	 * 
-	 * @return
+	 * Reads the manually defined requests out of the requests.txt file to safe them in order to
+	 * start one simulation. The path is set relative, so there are no problems on different 
+	 * platforms. 
+	 *  
+	 * @return The total amount of requests.
 	 */
-	private int readRequests() {
+	@SuppressWarnings("resource")
+	public int readRequests() {
 		int nrOfRequests = 0;
 		
-		String filePath = new File("").getAbsolutePath();
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader
-					(filePath + "/src/main/java/hu/mta/sztaki/lpds/cloud/simulator/examples/vmallocmultitenant/requests.txt"));
+			Path path = Paths.get("src/main/java/hu/mta/sztaki/lpds/cloud/simulator/examples/vmallocmultitenant/requests.txt");			
+			reader = new BufferedReader(new FileReader(path.toString()));			
 			
 			String line = null;         
 		    while ((line = reader.readLine()) != null) {
 		    	if(line.startsWith("#"))
 					continue;
 		    	
+		    	nrOfRequests++;		//increase the counter
+		    	
+		    	// we use the whitespace to seperate the different values
 		    	String[] strings = line.split(" ");
 		    	
+		    	// now the string array above is used to create a new request
 		    	String tenant = strings[0];
 		    	String componentTypeName = strings[1];
 		    	ComponentType ctype = null;
 		    	for(ComponentType type: MultiTenantPMScheduler.getTypes()) {
+		    		if(MultiTenantPMScheduler.getTypes().isEmpty())
+		    			throw new NullPointerException("There are no types inside the pm scheduler!");
+		    		
+		    		// with this expression we can determine the component type to use
 		    		if(type.getName().equals(componentTypeName)) {
 		    			ctype = type;
 		    			break;
 		    		}
 		    	}
+		    	if(ctype == null) {
+		    		throw new NullPointerException("There is no such ComponentType as " + componentTypeName + "!");
+		    	}		    	
+		    	
+		    	boolean crit = Boolean.getBoolean(strings[2]);
+		    	boolean custom = random.nextBoolean();		// we decide this factor randomly
+		    	boolean supportsSecureEnclaves = random.nextBoolean();		// we decide this factor randomly
+		    	
+		    	double startTime = Double.parseDouble(strings[3]);
+		    	double duration = Double.parseDouble(strings[4]);
+		    	
 		    	double first = Double.parseDouble(strings[5]);
 				double second = 0.001;		// processing power
 				long third = Long.parseLong(strings[6]);
 				
+				// a new ResourceVector is created for passing it to the new request
 		    	ResourceVector cons = new ResourceVector(first, second, third);
 		    	
-		    	//TODO
-		    	
-		    	Request req = new Request(line, null, null, false, false, false);
-		    	initialRequests.add(req);
+		    	Request req = new Request(tenant, ctype, cons, crit, custom, supportsSecureEnclaves, startTime, duration);
+			    initialRequests.add(req);
+		    			    	
 		    }
 		    reader.close();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new RuntimeException("This path is not leading to the wanted file.", e);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -124,77 +149,32 @@ public class MultiTenantController {
 		return nrOfRequests;
 	}
 	
+	// not necessary at the moment
+	@SuppressWarnings("unused")
 	private int generateRequests() {
 		int nrOfRequests = 0;
 		return nrOfRequests;
 	}
 	
+	// not necessary at the moment
+	@SuppressWarnings("unused")
 	private int readGWFFile() {
 		int jobsProcessed = 0;
 		return jobsProcessed;
 	}
 	
-	/**
-	 * Maybe move this to the VMScheduler...
-	 * 
-	 * Has to be called after a new Job arrives. It generates a request with the
-	 * given values, the size of the Job has to be used as component size increase,
-	 * the finishing of a Job has to be mapped to a terminateRequest etc.
-	 * 
-	 * After that the request will be handled by the PMScheduler.
-	 * 
-	 * Since the workload trace does not contain all information we need, we 
-	 * generated the missing information as follows:
-	 * 
-	 * - Each job gets marked as critical with probability pcrit.
-	 * - Each job gets marked as custom with probability pcust.
-	 * - Each job gets marked as capable of using secure enclaves with probability pcap.
-	 * - Each job has to be assigned randomly to one of the tenants.
-	 * 
-	 * The marking actually happens in the generated request.
-	 * 
-	 * TODO
-	 */
-	private Request mappingRequestToJob(Job job) {	
-		Random random = new Random(123);
-		
-		String tenant;
-		boolean crit = false;
-		boolean custom = false;
-		boolean supportsSecureEnclaves = false;
-		
-		// determine the tenant who sends the job		
-		double probability = random.nextDouble();
-		if(probability < 0.33) {
-			tenant = tenants[0];
-		}
-		else {
-			if(probability > 0.67) {
-				tenant = tenants[1];
-			}
-			else {
-				tenant = tenants[2];
-			}
-		}
-		
-		// determine whether the tenant's request contains criticality, a custom component
-		// instance or the possibilty to use secure enclaves.
-		if(random.nextBoolean()) {
-			crit = true;
-		}
-		if(random.nextBoolean()) {
-			custom = true;
-		}
-		if(random.nextBoolean()) {
-			supportsSecureEnclaves = true;
-		}
-		
-		Request request = new Request(tenant, null, null, crit, custom, supportsSecureEnclaves);
-		return request;
-		// c++ code: main, read_gwf_file
-	}
-	
 	private void doOneRound() {
 		
+		// init comptypes and requests for the PMScheduler
+		readCompTypes();
+		int amountOfRequests = readRequests();
+		
+		int processedRequests = 0;
+		boolean changed = true;
+
+		int counter = 0;
+		while(initialRequests.get(counter) != null && processedRequests  < amountOfRequests) {
+			//TODO
+		}
 	}
 }
