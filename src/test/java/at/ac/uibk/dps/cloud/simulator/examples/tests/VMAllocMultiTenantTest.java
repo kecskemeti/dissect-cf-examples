@@ -1,25 +1,29 @@
 package at.ac.uibk.dps.cloud.simulator.examples.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import at.ac.uibk.dps.cloud.simulator.test.IaaSRelatedFoundation;
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentType;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantController;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantPMScheduler;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantVMScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
@@ -106,7 +110,7 @@ public class VMAllocMultiTenantTest extends IaaSRelatedFoundation {
 			System.exit(-1);
 		}
 
-		basic = new IaaSService(FirstFitScheduler.class, MultiTenantScheduler.class);
+		basic = new IaaSService(MultiTenantVMScheduler.class, MultiTenantPMScheduler.class);
 
 		//create central repository
 		long bandwidth=1000000;
@@ -159,23 +163,42 @@ public class VMAllocMultiTenantTest extends IaaSRelatedFoundation {
 	// testcases
 	
 	@Test(timeout = 1000)
-	public void overAllocSimpleTest() throws VMManagementException, NetworkException {
+	public void compTypesTest() {
+		MultiTenantController controller = new MultiTenantController();
+		controller.readCompTypes();
+		ArrayList<ComponentType> results = MultiTenantPMScheduler.getTypes();
 		
+		Assert.assertEquals(7, results.size());
+		Assert.assertEquals(7, results.size());
 	}
 	
 	@Test(timeout = 1000)
-	public void overAllocComplexTest() throws VMManagementException, NetworkException {
+	public void requestsTest() {
+		MultiTenantController controller = new MultiTenantController();
+		controller.readCompTypes();
+		int result = controller.readRequests();
 		
-	}
-
-	@Test(timeout = 1000)
-	public void underAllocSimpleTest() throws VMManagementException, NetworkException {
-		
+		Assert.assertEquals(15, result);
 	}
 	
-	@Test(timeout = 1000)
-	public void underAllocComplexTest() throws VMManagementException, NetworkException {
-		
-	}
+//	@Test(timeout = 1000)
+//	public void overAllocSimpleTest() throws VMManagementException, NetworkException {
+//		
+//	}
+//	
+//	@Test(timeout = 1000)
+//	public void overAllocComplexTest() throws VMManagementException, NetworkException {
+//		
+//	}
+//
+//	@Test(timeout = 1000)
+//	public void underAllocSimpleTest() throws VMManagementException, NetworkException {
+//		
+//	}
+//	
+//	@Test(timeout = 1000)
+//	public void underAllocComplexTest() throws VMManagementException, NetworkException {
+//		
+//	}
 	
 }
