@@ -9,6 +9,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentI
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentType;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantPMScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request.Type;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
@@ -50,7 +51,7 @@ public class ComponentTest extends IaaSRelatedFoundation {
 	@Test(timeout = 100)
 	public void testRequestFunctionality() { 
 		cinstance = ctype.createInstance(false);
-		Request r = new Request("A", ctype, new ResourceVector(0,0,0), false, false, false, 0, 0);
+		Request r = new Request("A", ctype, new ResourceVector(0,0,0), false, false, false, 0, 0, Type.NEW_REQUEST);
 		cinstance.addRequest(r);
 		
 		Assert.assertEquals(1, cinstance.getRequests().size());
