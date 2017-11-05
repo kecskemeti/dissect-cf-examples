@@ -1,8 +1,8 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
@@ -39,7 +39,7 @@ public class ComponentInstance {
 	private ComponentType type;
 	
 	/** All existing requests of this instance. */
-    private Set<Request> requests;
+    private HashSet<Request> requests;
     
     /** TODO */
     private ConsumptionEventAdapter e;
@@ -62,6 +62,9 @@ public class ComponentInstance {
 	 * 			Determines if this instance is a custom implementation.
 	 */
 	public ComponentInstance(String name, boolean crit, ComponentType componentType) {
+		
+		requests = new HashSet<Request>();
+		
 		this.name = name;
 		this.vm = null;
 		this.crit = crit;
@@ -76,7 +79,7 @@ public class ComponentInstance {
 	 * 
 	 * @return All existing requests.
 	 */
-	public Set<Request> getRequests() {
+	public HashSet<Request> getRequests() {
 		return requests;
 	}
 	

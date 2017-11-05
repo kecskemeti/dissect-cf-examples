@@ -8,7 +8,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
  * 
  * @author Rene Ponto	 
  */
-class Request {
+public class Request {
 	
 	private String tenant;
 	private ComponentType type;

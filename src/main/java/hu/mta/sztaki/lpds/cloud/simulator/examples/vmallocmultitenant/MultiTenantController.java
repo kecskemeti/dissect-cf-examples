@@ -68,7 +68,7 @@ public class MultiTenantController {
 		    	initialCompTypes.put(strings[0], list);
 		    }
 		    reader.close();
-		    MultiTenantPMScheduler.instantiateTypes(initialCompTypes);
+		    MultiTenantComponentScheduler.instantiateTypes(initialCompTypes);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException("This path is not leading to the wanted file.", e);
 		} catch (IOException e) {
@@ -107,8 +107,8 @@ public class MultiTenantController {
 		    	String tenant = strings[0];
 		    	String componentTypeName = strings[1];
 		    	ComponentType ctype = null;
-		    	for(ComponentType type: MultiTenantPMScheduler.getTypes()) {
-		    		if(MultiTenantPMScheduler.getTypes().isEmpty())
+		    	for(ComponentType type: MultiTenantComponentScheduler.getTypes()) {
+		    		if(MultiTenantComponentScheduler.getTypes().isEmpty())
 		    			throw new NullPointerException("There are no types inside the pm scheduler!");
 		    		
 		    		// with this expression we can determine the component type to use
@@ -166,15 +166,15 @@ public class MultiTenantController {
 	private void doOneRound() {
 		
 		// init comptypes and requests for the PMScheduler
-		readCompTypes();
-		int amountOfRequests = readRequests();
-		
-		int processedRequests = 0;
-		boolean changed = true;
-
-		int counter = 0;
-		while(initialRequests.get(counter) != null && processedRequests  < amountOfRequests) {
-			//TODO
-		}
+//		readCompTypes();
+//		int amountOfRequests = readRequests();
+//		
+//		int processedRequests = 0;
+//		boolean changed = true;
+//
+//		int counter = 0;
+//		while(initialRequests.get(counter) != null && processedRequests  < amountOfRequests) {
+//			//TODO
+//		}
 	}
 }
