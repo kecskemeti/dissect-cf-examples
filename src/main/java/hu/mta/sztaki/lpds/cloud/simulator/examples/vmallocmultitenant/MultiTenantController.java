@@ -1,22 +1,50 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.InvalidPropertiesFormatException;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request.Type;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
+	/**
+	 * This class is similar to the consolidation controller. It creates
+	 * requests, the component types which shall be used and manages the 
+	 * different schedulers and the consolidator.
+	 * 
+	 * TODO for improvement:
+	 * - Create different Events for handling the requests
+	 * 
+	 * @author Rene Ponto 
+	 */
 public class MultiTenantController {
 	
-	//pm_size=[400 16000] TODO
+	/** Contains the values for doing one round.*/
+	private Properties options;
+	private IaaSService toConsolidate;
 	
+	private boolean logging;
+	private String pmValues;
+	private int normalPmNum;
+	private int securePmNum;
+	private String requestSource;
 	
 	/** The existing tenants. */
 //	private String[] tenants = new String[]{"A","B","C"};
@@ -30,13 +58,57 @@ public class MultiTenantController {
 	
 	public MultiTenantController() {
 		random = new Random(123);
+		try {
+			readOptions();
+		} catch (InvalidPropertiesFormatException e) {
+			throw new RuntimeException("The formate of the options file is wrong.", e);
+		} catch (IOException e) {
+			throw new RuntimeException("An IOException occured while reading the options.", e);
+		}
 		
 		initialCompTypes = new HashMap<String, ArrayList<String>>();
 		initialRequests = new ArrayList<Request>();
+		
+		main(null); 	// invoke the main method
 	}
 	
 	public void main(int[] args) {	
-		doOneRound();
+		
+		if(requestSource == "file") {
+			// init comptypes and requests for the different schedulers
+			readCompTypes();
+			int amountOfRequests = readRequests();
+			doOneRound(amountOfRequests);
+		}
+		else {
+			// init comptypes and requests for the different schedulers
+			readGWFFile();
+			int amountOfRequests = generateRequests();
+			doOneRound(amountOfRequests);
+		}
+	}
+	
+	private void readOptions() throws InvalidPropertiesFormatException, IOException {
+		// path to the options
+		Path path = Paths.get("src/main/java/hu/mta/sztaki/lpds/cloud/simulator/examples/vmallocmultitenant/options.xml");
+		
+		options = new Properties();
+		File file = new File(path.toString());
+		FileInputStream fileInput = new FileInputStream(file);
+		options.loadFromXML(fileInput);
+		fileInput.close();
+		
+		// set the actual values
+		logging = Boolean.parseBoolean(options.getProperty("logging"));
+		pmValues = options.getProperty("pmValues");
+		normalPmNum = Integer.parseInt(options.getProperty("normalPmNum"));
+		securePmNum = Integer.parseInt(options.getProperty("securePmNum"));
+		requestSource = options.getProperty("requestSource");
+		
+		// close the inputstream
+		FileOutputStream fileOutput = new FileOutputStream(file);
+		options.storeToXML(fileOutput, null);
+		fileOutput.close();
 	}
 	
 	/**
@@ -135,7 +207,7 @@ public class MultiTenantController {
 				// a new ResourceVector is created for passing it to the new request
 		    	ResourceVector cons = new ResourceVector(first, second, third);
 		    	
-		    	Request req = new Request(tenant, ctype, cons, crit, custom, supportsSecureEnclaves, startTime, duration);
+		    	Request req = new Request(tenant, ctype, cons, crit, custom, supportsSecureEnclaves, startTime, duration, Type.NEW_REQUEST);
 			    initialRequests.add(req);
 		    			    	
 		    }
@@ -150,31 +222,95 @@ public class MultiTenantController {
 	}
 	
 	// not necessary at the moment
-	@SuppressWarnings("unused")
 	private int generateRequests() {
 		int nrOfRequests = 0;
 		return nrOfRequests;
 	}
 	
 	// not necessary at the moment
-	@SuppressWarnings("unused")
 	private int readGWFFile() {
 		int jobsProcessed = 0;
 		return jobsProcessed;
 	}
 	
-	private void doOneRound() {
+	/**
+	 * This method sets up an IaaS according to the values in the options to work with.
+	 * @throws SecurityException 
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalArgumentException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	private void setUpInfrastructure() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		String[] values = pmValues.split(" ");
 		
-		// init comptypes and requests for the PMScheduler
-//		readCompTypes();
-//		int amountOfRequests = readRequests();
-//		
-//		int processedRequests = 0;
-//		boolean changed = true;
-//
-//		int counter = 0;
-//		while(initialRequests.get(counter) != null && processedRequests  < amountOfRequests) {
-//			//TODO
-//		}
+		// set up the IaaS and the necessary schedulers
+		toConsolidate = new IaaSService(MultiTenantVMScheduler.class, MultiTenantPMScheduler.class);
+		MultiTenantComponentScheduler componentScheduler = new MultiTenantComponentScheduler(toConsolidate);
+		
+		final ResourceConstraints pmConstraints = new ConstantConstraints(Double.parseDouble(values[0]), Double.parseDouble(values[1]), 
+				Long.parseLong(values[2]));
+		for(int i = 0; i < normalPmNum; i++) {
+			//create pm
+		}
+		for(int j = 0; j < securePmNum; j++) {
+			//create pm
+		}
+		
+		//TODO
+	}
+	
+	private void doOneRound(int amountOfRequests) {		
+		try {
+			setUpInfrastructure();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		
+		long beforeSimu;
+		beforeSimu = Calendar.getInstance().getTimeInMillis();
+		System.err.println("Simulation started at: " + beforeSimu);
+		
+		int processedRequests = 0;
+		boolean changed = true;
+
+		int counter = 0;
+		while(initialRequests.get(counter) != null && processedRequests  < amountOfRequests) {
+			Request actual = initialRequests.get(counter);
+			switch(actual.getType()) {
+			
+			case NEW_REQUEST : 
+				//TODO
+				break;
+			case TERMINATE_REQUEST :
+				//TODO
+				break;
+			case REOPTIMIZATION :
+				if(changed) {
+					//TODO
+					break;
+				}
+				else {
+					System.err.println("Nothing has changed after last reoptimization, action is not necessary");
+					break;
+				}
+			}
+			processedRequests++;
+			initialRequests.remove(actual);
+		}
+		
+		System.err.println("All requests are processed.");
+		
+		if(logging) {
+			//TODO statistics
+//			if(Options::get_option_value("sequence")=="on")
+//				Statistics::write_detailed_csv("sequence_"+config_name+".csv");
+			long afterSimu = Calendar.getInstance().getTimeInMillis();
+			System.err.println("Time that elapsed in the simulation is: " + (afterSimu - beforeSimu));
+			System.err.println("Number of reoptimizations: " + MultiTenantConsolidator.reoptimizations);
+		}
+				
 	}
 }

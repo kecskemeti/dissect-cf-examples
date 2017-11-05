@@ -26,7 +26,9 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 public class MultiTenantConsolidator extends Consolidator implements Helpers {
 	
-	HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;
+	private HashMap<VirtualMachine, ArrayList<ComponentInstance>> mapping;
+	
+	public static int reoptimizations;
 
 	/**
 	 * The constructor of this class. It expects a HashMap with the actual mapping of
@@ -72,6 +74,7 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 	 */
 	@SuppressWarnings("static-access")
 	private void reoptimize(PhysicalMachine[] pms) throws VMManagementException, NetworkException {
+		reoptimizations++;	// increase the counter
 		
 		// first, check if the number of active PMs can be minimized
 		for(PhysicalMachine actualPm : pms) {

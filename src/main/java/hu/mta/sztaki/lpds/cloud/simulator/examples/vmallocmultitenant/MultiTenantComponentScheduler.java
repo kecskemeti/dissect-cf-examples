@@ -41,7 +41,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
 
 public class MultiTenantComponentScheduler implements Helpers {
 	
-	IaaSService toSchedule;
+	private IaaSService toSchedule;
 
 	/** Counter for creating virtual appliances. */
 	private int vaCounter = 1;

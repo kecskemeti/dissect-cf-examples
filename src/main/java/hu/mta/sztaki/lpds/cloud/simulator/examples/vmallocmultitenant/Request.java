@@ -11,10 +11,11 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 public class Request {
 	
 	private String tenant;
-	private ComponentType type;
+	private ComponentType ctype;
 	private ResourceVector cons;
 	private boolean crit, custom, supportsSecureEnclaves;
 	private double startTime, duration;
+	private Type event;
 
 
 	/**
@@ -35,18 +36,46 @@ public class Request {
 	 * 			The time where this request occur.
 	 * @param duration
 	 * 			The duration of this request.
+	 * @param event
+	 * 			The type of this request.
 	 */
-	public Request(String tenant, ComponentType type, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves, 
-			double startTime, double duration) {
+	public Request(String tenant, ComponentType ctype, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves, 
+			double startTime, double duration, Type event) {
 		
 		this.tenant = tenant;
-		this.type = type;
+		this.ctype = ctype;
 		this.cons = cons;
 		this.crit = crit;
 		this.custom = custom;
 		this.supportsSecureEnclaves = supportsSecureEnclaves;
 		this.startTime = startTime;
 		this.duration = duration;
+		this.event = event;
+	}
+	
+	/**
+	 * 
+	 * @return The event of this request.
+	 */
+	public Type getType() {
+		return event;
+	}
+	
+	public static enum Type {
+		/**
+		 * This request is a new incoming request of a component type.
+		 */
+		NEW_REQUEST,
+		
+		/**
+		 * This request shall terminate an active request of an component type.
+		 */
+		TERMINATE_REQUEST,
+		
+		/**
+		 * This request shall start the consolidator.
+		 */
+		REOPTIMIZATION
 	}
 	
 	/**
@@ -62,7 +91,7 @@ public class Request {
 	 * @return The requested ComponentType.
 	 */
 	public ComponentType getComponentType() {
-		return type;
+		return ctype;
 	}
 	
 	/**
