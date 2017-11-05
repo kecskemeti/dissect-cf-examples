@@ -16,6 +16,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.ComponentType;
+import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantComponentScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.MultiTenantPMScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.NonQueueingScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
@@ -38,8 +39,7 @@ public class MultiTenantPMSchedulerTest extends IaaSRelatedFoundation {
 
 	@Before
 	public void resetSim() throws Exception {
-		basic = new IaaSService(NonQueueingScheduler.class,
-				MultiTenantPMScheduler.class);
+		basic = new IaaSService(NonQueueingScheduler.class,	MultiTenantPMScheduler.class);
 		testPM1 = dummyPMcreator();
 		testPM2 = dummyPMcreator();
 		basic.registerHost(testPM1);
@@ -98,6 +98,7 @@ public class MultiTenantPMSchedulerTest extends IaaSRelatedFoundation {
 		
 		va1 = new VirtualAppliance("VM 1", 1, 0, false, 1);
 		vm1 = new VirtualMachine(va1);
+		Timed.simulateUntilLastEvent();
 		switchOnVM(vm1, smallConstraints, testPM1, true);
 		
 		HashMap<String, ArrayList<String>> initialCompType = new HashMap<String, ArrayList<String>>();
@@ -108,11 +109,11 @@ public class MultiTenantPMSchedulerTest extends IaaSRelatedFoundation {
     	list.add("20.0");
     	list.add("true");
 		initialCompType.put("StoreMgr", list);
-		MultiTenantPMScheduler.instantiateTypes(initialCompType);
+		MultiTenantComponentScheduler.instantiateTypes(initialCompType);
 		
-		ComponentType type = MultiTenantPMScheduler.getTypes().get(0);
+		ComponentType type = MultiTenantComponentScheduler.getTypes().get(0);
 		
-		//TODO need to check and improve the logic of the mapping-object inside the PMScheduler
+		//TODO need to check and improve the logic of the mapping-object inside the ComponentScheduler
 		
 		
 	}
