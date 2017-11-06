@@ -1,56 +1,99 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
-import java.util.Set;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.AlterableResourceConstraints;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
 	/**
 	 * This class defines the type of a component, so there can be instances created of this type.
+	 * It is important to mention that the String 'providedBy' has to be filled with 'Provider'
+	 * if this type shall not define a custom implementation.
+	 * 
+	 * This class refers to the ComponentType out of the paper "Optimized Cloud 
+	 * Deployment of Multi-tenant Software Considering Data Protection Concerns" 
+	 * by Zoltan Adam Mann and Andreas Metzger, published in CCGrid 2017.
 	 * 
 	 * @author Rene Ponto
 	 */
 
 public class ComponentType {
 	
+	/** The name of this ComponentType. */
 	private String name;
+	
+	/** This string determines if this type is custom or not. If it is
+	 * 'Provider', it is no custom implementation. */
 	private String providedBy;
-	private AlterableResourceConstraints cons;
-	private Set<ComponentInstance> instances;
+	
+	/** The base constraints for hosting an instance of this type. */
+	private ResourceVector cons;
+	
+	/** All actually existing instances of this type. */
+	private HashSet<ComponentInstance> instances;
+	
+	/** The counter for creating more instances of this type. */
 	private int instanceCounter;
+	
+	/** Determines if this ComponentType supports sgx. */
 	private boolean isSgxSupported;
 
 	/**
-	 * 
 	 * @param name
+	 * 			The name of this type.
 	 * @param providedBy
+	 * 			The provider of this type.
 	 * @param cons
+	 * 			The base ResourceConstraints.
 	 * @param sgxSupport
+	 * 			Determines the support of sgx.
 	 */
-	public ComponentType(String name, String providedBy, AlterableResourceConstraints cons, boolean sgxSupport) {
+	public ComponentType(String name, String providedBy, ResourceVector cons, boolean sgxSupport) {
 		this.name = name;
 		this.cons = cons;
 		this.providedBy = providedBy;
 		this.isSgxSupported = sgxSupport;
-		instanceCounter = 0;
+		instanceCounter = 0;		
+		
+		instances = new HashSet<ComponentInstance>();
 	}
 	
+	/**
+	 * 
+	 * @return Name of this type.
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * 
+	 * @return The Provider of this type. If not custom, it is 'Provider'.
+	 */
 	public String getProvidedBy() {
 		return providedBy;
 	}
 	
-	public AlterableResourceConstraints getResources() {
+	/**
+	 * 
+	 * @return The necessary resources to host this type.
+	 */
+	public ResourceVector getResources() {
 		return cons;
 	}
 	
-	public Set<ComponentInstance> getInstances() {
+	/**
+	 * 
+	 * @return The set of all existing ComponentInstances of this type.
+	 */
+	public HashSet<ComponentInstance> getInstances() {
 		return instances;
 	}
 	
+	/**
+	 * 
+	 * @return true if this type supports sgx.
+	 */
 	public boolean isSgxSupported() {
 		return isSgxSupported;
 	}
