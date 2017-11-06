@@ -72,9 +72,9 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 	 * @throws VMManagementException
 	 * @throws NetworkException
 	 */
-	@SuppressWarnings("static-access")
 	private void reoptimize(PhysicalMachine[] pms) throws VMManagementException, NetworkException {
 		reoptimizations++;	// increase the counter
+		System.err.println("Starting reoptimization, round " + reoptimizations);
 		
 		// first, check if the number of active PMs can be minimized
 		for(PhysicalMachine actualPm : pms) {
@@ -86,7 +86,7 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 				PhysicalMachine target = null;
 				for(PhysicalMachine pm : pms) {
 					if(isPmAbleToHostVm(pm, vm, mapping)) {
-						pm.allocateResources(vm.getResourceAllocation().allocated, true, pm.migrationAllocLen);
+						pm.allocateResources(vm.getResourceAllocation().allocated, true, PhysicalMachine.migrationAllocLen);
 						target = pm;
 						break;
 					}	
@@ -225,7 +225,8 @@ public class MultiTenantConsolidator extends Consolidator implements Helpers {
 				securePM.switchoff(unsecurePM);
 				changed2 = true;
 			}			
-		}		
+		}
+		System.err.println("Finished reoptimization, round " + reoptimizations);
 	}
 	
 	

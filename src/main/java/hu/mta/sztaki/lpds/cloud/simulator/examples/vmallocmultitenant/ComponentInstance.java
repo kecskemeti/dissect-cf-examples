@@ -160,6 +160,7 @@ public class ComponentInstance {
 	 */
 	public void addRequest(Request r) {
 		requests.add(r);
+		r.setHost(this);
 		constraints.add(r.getResources());
 		if(vm != null){
 			adjustTask();
@@ -174,6 +175,7 @@ public class ComponentInstance {
 	 */
 	public void removeRequest(Request r) {
 		requests.remove(r);
+		r.setHost(null);
 		constraints.subtract(r.getResources());
 		if(vm != null) {
 			adjustTask();

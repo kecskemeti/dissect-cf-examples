@@ -86,6 +86,10 @@ public class MultiTenantComponentScheduler implements Helpers {
 		return types;
 	}
 	
+	public HashMap<VirtualMachine, ArrayList<ComponentInstance>> getMapping() {
+		return mapping;
+	}
+	
 	/**
 	 * Method to handle a new Request. The focus is on reusing existing instances instead of
 	 * creating new ones, but if that is not possible, new instances are deployed.

@@ -20,6 +20,7 @@ import java.util.Random;
 
 import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request.Type;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
@@ -30,7 +31,8 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 	 * different schedulers and the consolidator.
 	 * 
 	 * TODO for improvement:
-	 * - Create different Events for handling the requests
+	 * - finish setUpInfrastructure
+	 * - finish doOneRound
 	 * 
 	 * @author Rene Ponto 
 	 */
@@ -39,6 +41,8 @@ public class MultiTenantController {
 	/** Contains the values for doing one round.*/
 	private Properties options;
 	private IaaSService toConsolidate;
+	public MultiTenantComponentScheduler componentScheduler;
+	public MultiTenantConsolidator consolidator;
 	
 	private boolean logging;
 	private String pmValues;
@@ -247,7 +251,7 @@ public class MultiTenantController {
 		
 		// set up the IaaS and the necessary schedulers
 		toConsolidate = new IaaSService(MultiTenantVMScheduler.class, MultiTenantPMScheduler.class);
-		MultiTenantComponentScheduler componentScheduler = new MultiTenantComponentScheduler(toConsolidate);
+		componentScheduler = new MultiTenantComponentScheduler(toConsolidate);
 		
 		final ResourceConstraints pmConstraints = new ConstantConstraints(Double.parseDouble(values[0]), Double.parseDouble(values[1]), 
 				Long.parseLong(values[2]));
@@ -261,6 +265,11 @@ public class MultiTenantController {
 		//TODO
 	}
 	
+	/**
+	 * Creates at first an Infrastructure with the properties of the options file to work with. After
+	 * that, all requests are going to get processed and the results are printed on the screen.
+	 * @param amountOfRequests
+	 */
 	private void doOneRound(int amountOfRequests) {		
 		try {
 			setUpInfrastructure();
@@ -282,14 +291,15 @@ public class MultiTenantController {
 			switch(actual.getType()) {
 			
 			case NEW_REQUEST : 
-				//TODO
+				componentScheduler.processRequest(actual, actual.getComponentType(), actual.isCrit());
 				break;
 			case TERMINATE_REQUEST :
-				//TODO
+				componentScheduler.terminateRequest(actual, actual.getHost());
 				break;
 			case REOPTIMIZATION :
 				if(changed) {
-					//TODO
+					consolidator = new MultiTenantConsolidator(toConsolidate, 0, componentScheduler.getMapping());
+					consolidator.doConsolidation(toConsolidate.machines.toArray(new PhysicalMachine[toConsolidate.machines.size()]));
 					break;
 				}
 				else {

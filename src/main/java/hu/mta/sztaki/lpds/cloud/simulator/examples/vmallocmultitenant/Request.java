@@ -16,6 +16,8 @@ public class Request {
 	private boolean crit, custom, supportsSecureEnclaves;
 	private double startTime, duration;
 	private Type event;
+	
+	private ComponentInstance host;
 
 
 	/**
@@ -51,6 +53,7 @@ public class Request {
 		this.startTime = startTime;
 		this.duration = duration;
 		this.event = event;
+		host = null;
 	}
 	
 	/**
@@ -76,6 +79,22 @@ public class Request {
 		 * This request shall start the consolidator.
 		 */
 		REOPTIMIZATION
+	}
+	
+	/**
+	 * 
+	 * @return The name of the tenant.
+	 */
+	public ComponentInstance getHost() {
+		return host;
+	}
+	
+	/**
+	 * 
+	 * @param newHost
+	 */
+	public void setHost(ComponentInstance newHost) {
+		this.host = newHost;
 	}
 	
 	/**

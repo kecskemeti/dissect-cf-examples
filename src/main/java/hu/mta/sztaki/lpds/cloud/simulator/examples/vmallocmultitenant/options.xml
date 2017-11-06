@@ -6,4 +6,5 @@
 <entry key="normalPmNum">70</entry>
 <entry key="securePmNum">30</entry>
 <entry key="requestsSource">file</entry>
+<entry key="consFreq">60000</entry>
 </properties>
