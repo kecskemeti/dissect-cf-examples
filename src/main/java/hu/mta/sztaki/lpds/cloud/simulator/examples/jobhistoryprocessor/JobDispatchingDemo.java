@@ -32,7 +32,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -75,12 +74,11 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
  *         MTA SZTAKI (c) 2012-5"
  */
 public class JobDispatchingDemo {
-	// save the results inside a file to load it inside the consolidation controller
-
-	public static final Properties results = new Properties();
+	public static Thread mainThread;
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		mainThread=Thread.currentThread();
 		// Allows repeated execution
 		Timed.resetTimed();
 		if (!MultiIaaSJobDispatcher.verbosity) {

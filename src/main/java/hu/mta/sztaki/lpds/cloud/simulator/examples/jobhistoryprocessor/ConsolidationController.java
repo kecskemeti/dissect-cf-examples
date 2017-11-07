@@ -40,6 +40,10 @@ public class ConsolidationController {
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
 	private String seed = "123";
+	
+	public static void main(String[] args) throws IOException {
+		new ConsolidationController().runTestcaseOne(false);
+	}
 
 	/**
 	 * Sets all default values (which are the origin ones) and reads the
@@ -59,22 +63,16 @@ public class ConsolidationController {
 
 		// set the default values
 
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
-		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false",
-				lowerThreshold);
-		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false",
-				lowerThreshold);
-
 		props.setProperty("upperThreshold", upperThreshold);
 		props.setProperty("lowerThreshold", lowerThreshold);
 		props.setProperty("mutationProb", mutationProb);
 		props.setProperty("seed", seed);
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2,true);
+		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false",
+				lowerThreshold,true);
+		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false",
+				lowerThreshold,true);
 
-		// trace = props.getProperty(trace);
-
-		FileOutputStream fileOutput = new FileOutputStream(file);
-		props.storeToXML(fileOutput, null);
-		fileOutput.close();
 	}
 
 	/**
@@ -187,7 +185,7 @@ public class ConsolidationController {
 						setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
 								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
 								psoC1Values.get(psoC1Values.indexOf(third)).toString(),
-								psoC2Values.get(psoC2Values.indexOf(fourth)).toString());
+								psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),false);
 
 					}
 				}
@@ -208,7 +206,7 @@ public class ConsolidationController {
 										gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(),
 										gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),false);
 
 								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 											// no point in testing more than one value
@@ -234,7 +232,7 @@ public class ConsolidationController {
 										abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(),
 										abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),false);
 								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 											// no point in testing more than one value
 									break;
@@ -258,14 +256,14 @@ public class ConsolidationController {
 	 * @param c2
 	 *            This value defines the second learning factor.
 	 */
-	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2) {
+	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, boolean noWrite) {
 
 		props.setProperty("psoSwarmSize", swarmSize);
 		props.setProperty("psoNrIterations", iterations);
 		props.setProperty("psoC1", c1);
 		props.setProperty("psoC2", c2);
 
-		this.saveProps(PsoConsolidator.class.getName());
+		this.saveProps(PsoConsolidator.class.getName(), noWrite);
 	}
 
 	/**
@@ -281,7 +279,7 @@ public class ConsolidationController {
 	 * @param mutationProb
 	 */
 	private void setAbcProperties(String populationSize, String iterations, String limitTrials, String mutationProb,
-			String doLocalSearch, String lowerThreshold) {
+			String doLocalSearch, String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("abcPopulationSize", populationSize);
 		props.setProperty("abcNrIterations", iterations);
@@ -290,7 +288,7 @@ public class ConsolidationController {
 		props.setProperty("doLocalSearch", doLocalSearch);
 		props.setProperty("lowerThreshold", lowerThreshold);
 
-		this.saveProps(AbcConsolidator.class.getName());
+		this.saveProps(AbcConsolidator.class.getName(), noWrite);
 	}
 
 	/**
@@ -305,7 +303,7 @@ public class ConsolidationController {
 	 *            generation.
 	 */
 	private void setGaProperties(String populationSize, String iterations, String crossovers, String mutationProb,
-			String doLocalSearch, String lowerThreshold) {
+			String doLocalSearch, String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("gaPopulationSize", populationSize);
 		props.setProperty("gaNrIterations", iterations);
@@ -314,7 +312,7 @@ public class ConsolidationController {
 		props.setProperty("doLocalSearch", doLocalSearch);
 		props.setProperty("lowerThreshold", lowerThreshold);
 
-		this.saveProps(GaConsolidator.class.getName());
+		this.saveProps(GaConsolidator.class.getName(), noWrite);
 	}
 
 	/**
@@ -323,7 +321,8 @@ public class ConsolidationController {
 	 * @param file
 	 * @throws IOException
 	 */
-	private void saveProps(String consType) {
+	private void saveProps(String consType, boolean noWrite) {
+		if(noWrite) return;
 		try {
 			FileOutputStream fileOutput = new FileOutputStream(new File(consType + "-consolidationProperties" + propCounter++ + ".xml"));
 			props.storeToXML(fileOutput, null);

@@ -209,7 +209,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 				public void run() {
 					printLog("Starting monitoring thread!");
 					boolean keepThread = true;
-					while (keepThread) {
+					while (keepThread && !JobDispatchingDemo.mainThread.isAlive()) {
 						printStats();
 						final long cont = System.currentTimeMillis() + 15000;
 						int qlen = -1;

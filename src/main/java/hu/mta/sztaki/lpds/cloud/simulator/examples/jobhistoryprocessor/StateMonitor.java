@@ -74,7 +74,7 @@ class StateMonitor extends Timed {
 		public void run() {
 			try {
 				do {
-					while (monitoringDataQueue.peek() == null && continueRunning) {
+					while (monitoringDataQueue.peek() == null && continueRunning && !JobDispatchingDemo.mainThread.isAlive()) {
 						try {
 							sleep(50);
 						} catch (InterruptedException ie) {
@@ -88,7 +88,7 @@ class StateMonitor extends Timed {
 						// output csv file
 						bw.write(st.toString());
 					}
-				} while (continueRunning);
+				} while (continueRunning && !JobDispatchingDemo.mainThread.isAlive());
 				bw.close();
 			} catch (IOException e) {
 				throw new RuntimeException("Problem with writing out the monitoring database", e);
