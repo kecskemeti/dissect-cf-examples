@@ -31,7 +31,7 @@ public class ConsolidationController {
 	private String gaDefaultPopulationSize = "10";
 	private String gaDefaultNrIterations = "50";
 	private String gaDefaultNrCrossovers = "10";
-	private String upperThreshold = "0.75";
+	private String upperThreshold = "1.0";
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
 	private String seed = "123";
