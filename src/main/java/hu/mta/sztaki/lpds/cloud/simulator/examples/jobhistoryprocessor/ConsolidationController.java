@@ -109,21 +109,25 @@ public class ConsolidationController {
 
 		if (!test) {
 
-			int i = 5;
-			while (i < 101) {
+			int i = 1;
+			while (i < 21) {
+				if(i==5) {
+					i+=2;
+					continue; // this was already done
+				}
 				psoSwarmSizeValues.add(i);
 				gaPopulationSizeValues.add(i);
-				gaNrCrossoversValues.add(i);
 				abcPopulationSizeValues.add(i);
-				i = i + 20; // increase the variable by 10 to cover a bigger value range
+				psoNrIterationsValues.add(i);
+				gaNrIterationsValues.add(i);
+				abcNrIterationsValues.add(i);
+				i = i + 2; // increase the variable by 2 to cover the <20 range better
 			}
 
 			i = 5;
 			while (i < 101) {
-				psoNrIterationsValues.add(i);
-				gaNrIterationsValues.add(i);
-				abcNrIterationsValues.add(i);
-				i = i + 20;
+				gaNrCrossoversValues.add(i);
+				i = i + 10; //double the resolution of crossovers as before
 			}
 
 			i = 1;
