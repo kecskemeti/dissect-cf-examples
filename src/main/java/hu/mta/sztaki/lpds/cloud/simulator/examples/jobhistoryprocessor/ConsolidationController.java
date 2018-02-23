@@ -40,7 +40,7 @@ public class ConsolidationController {
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
 	private String seed = "123";
-	
+
 	public static void main(String[] args) throws IOException {
 		new ConsolidationController().runTestcaseOne(false);
 	}
@@ -67,11 +67,12 @@ public class ConsolidationController {
 		props.setProperty("lowerThreshold", lowerThreshold);
 		props.setProperty("mutationProb", mutationProb);
 		props.setProperty("seed", seed);
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2,true);
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2, "false",
+				lowerThreshold, true);
 		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false",
-				lowerThreshold,true);
+				lowerThreshold, true);
 		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false",
-				lowerThreshold,true);
+				lowerThreshold, true);
 
 	}
 
@@ -110,24 +111,15 @@ public class ConsolidationController {
 		if (!test) {
 
 			int i = 1;
-			while (i < 21) {
-				if(i==5) {
-					i+=2;
-					continue; // this was already done
-				}
+			while (i < 101) {
 				psoSwarmSizeValues.add(i);
 				gaPopulationSizeValues.add(i);
 				abcPopulationSizeValues.add(i);
 				psoNrIterationsValues.add(i);
 				gaNrIterationsValues.add(i);
 				abcNrIterationsValues.add(i);
-				i = i + 2; // increase the variable by 2 to cover the <20 range better
-			}
-
-			i = 5;
-			while (i < 101) {
 				gaNrCrossoversValues.add(i);
-				i = i + 10; //double the resolution of crossovers as before
+				i += i < 21 ? 2 : 20; // increase the variable by 2 to cover the <20 range better
 			}
 
 			i = 1;
@@ -147,7 +139,7 @@ public class ConsolidationController {
 			while (j <= 1) {
 				abcMutationProbValues.add(j);
 				gaMutationProbValues.add(j);
-				j = j + 0.2;
+				j = j + 0.1;
 			}
 			doLocalSearchValues.add(false);
 			doLocalSearchValues.add(true);
@@ -185,11 +177,18 @@ public class ConsolidationController {
 			for (int second : psoNrIterationsValues) {
 				for (int third : psoC1Values) {
 					for (int fourth : psoC2Values) {
-
-						setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
-								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
-								psoC1Values.get(psoC1Values.indexOf(third)).toString(),
-								psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),false);
+						for (boolean fifth : doLocalSearchValues) {
+							for (double sixth : lowerThresholdValues) {
+								setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
+										psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
+										psoC1Values.get(psoC1Values.indexOf(third)).toString(),
+										psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
+										Boolean.toString(fifth), Double.toString(sixth), false);
+								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
+									// no point in testing more than one value
+									break;
+							}
+						}
 
 					}
 				}
@@ -210,7 +209,8 @@ public class ConsolidationController {
 										gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(),
 										gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),false);
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),
+										false);
 
 								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 											// no point in testing more than one value
@@ -236,7 +236,8 @@ public class ConsolidationController {
 										abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(),
 										abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),false);
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),
+										false);
 								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 											// no point in testing more than one value
 									break;
@@ -260,12 +261,15 @@ public class ConsolidationController {
 	 * @param c2
 	 *            This value defines the second learning factor.
 	 */
-	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, boolean noWrite) {
+	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, String doLocalSearch,
+			String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("psoSwarmSize", swarmSize);
 		props.setProperty("psoNrIterations", iterations);
 		props.setProperty("psoC1", c1);
 		props.setProperty("psoC2", c2);
+		props.setProperty("doLocalSearch", doLocalSearch);
+		props.setProperty("lowerThreshold", lowerThreshold);
 
 		this.saveProps(PsoConsolidator.class.getName(), noWrite);
 	}
@@ -326,9 +330,11 @@ public class ConsolidationController {
 	 * @throws IOException
 	 */
 	private void saveProps(String consType, boolean noWrite) {
-		if(noWrite) return;
+		if (noWrite)
+			return;
 		try {
-			FileOutputStream fileOutput = new FileOutputStream(new File(consType + "-consolidationProperties" + propCounter++ + ".xml"));
+			FileOutputStream fileOutput = new FileOutputStream(
+					new File(consType + "-consolidationProperties" + propCounter++ + ".xml"));
 			props.storeToXML(fileOutput, null);
 			fileOutput.close();
 		} catch (IOException e) {
