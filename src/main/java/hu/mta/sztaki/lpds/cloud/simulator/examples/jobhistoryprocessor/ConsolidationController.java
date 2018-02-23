@@ -58,7 +58,7 @@ public class ConsolidationController {
 		
 		// set the default values
 		
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2, "false", lowerThreshold);
 		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false", lowerThreshold);
 		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false", lowerThreshold);
 		
@@ -196,38 +196,47 @@ public class ConsolidationController {
 			for(int second : psoNrIterationsValues) {
 				for(int third : psoC1Values) {
 					for(int fourth : psoC2Values) {
+						for(boolean fifth: doLocalSearchValues) {
+							for(double sixth: lowerThresholdValues) {
 						
-						setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(), 
-								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(), 
-								psoC1Values.get(psoC1Values.indexOf(third)).toString(), 
-								psoC2Values.get(psoC2Values.indexOf(fourth)).toString());
+									setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(), 
+												psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(), 
+												psoC1Values.get(psoC1Values.indexOf(third)).toString(), 
+												psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
+												doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
+												lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
+												);
 						
-						String[] jobStart = {trace, "1000", "50@16@1", "5000", "pso"};		
-						try {
-							JobDispatchingDemo.main(jobStart);
-						} catch (Exception e) {
-							throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
-						}
-						//load the results
+									String[] jobStart = {trace, "1000", "50@16@1", 
+											":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
+											":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
+											"5000", "pso"};
+									try {
+										JobDispatchingDemo.main(jobStart);
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									//load the results
+									Properties psoResult = JobDispatchingDemo.results;
 						
-						Properties psoResult = JobDispatchingDemo.results;
+									String results = "" + psoResult.getProperty("total power consumption") + ";" + psoResult.getProperty("migrations") + ";" +
+											psoResult.getProperty("max active pms") + ";" + psoResult.getProperty("average active pms") + ";" + 
+											psoResult.getProperty("runs") + ";" + psoResult.getProperty("amount of vms") + ";" +
+											psoResult.getProperty("averageTime") + ";" + psoResult.getProperty("time") + ";" + 
+											psoResult.getProperty("performance") + "";
 						
-						String results = "" + psoResult.getProperty("total power consumption") + ";" + psoResult.getProperty("migrations") + ";" +
-								psoResult.getProperty("max active pms") + ";" + psoResult.getProperty("average active pms") + ";" + 
-								psoResult.getProperty("runs") + ";" + psoResult.getProperty("amount of vms") + ";" +
-								psoResult.getProperty("averageTime") + ";" + psoResult.getProperty("time") + ";" + 
-								psoResult.getProperty("performance") + "";
+									//save the results with the rest of the information
 						
-						//save the results with the rest of the information
-						
-						String parameters = "SwarmSize: " + psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)) + "; NrOfIterations: " + 
-								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)) + "; C1: " + 
-								psoC1Values.get(psoC1Values.indexOf(third)) + "; C2: " + 
-								psoC2Values.get(psoC2Values.indexOf(fourth)) + ";";
-						try {
-							saveResults(writer, "pso;", parameters, results);
-						} catch (IOException e) {
-							throw new RuntimeException("An error occured while saving.");
+									String parameters = "SwarmSize: " + psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)) + "; NrOfIterations: " + 
+											psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)) + "; C1: " + 
+											psoC1Values.get(psoC1Values.indexOf(third)) + "; C2: " + 
+											psoC2Values.get(psoC2Values.indexOf(fourth)) + ";";
+									try {
+										saveResults(writer, "pso;", parameters, results);
+									} catch (IOException e) {
+										throw new RuntimeException("An error occured while saving.");
+									}
+							}
 						}
 					}
 				}
@@ -247,13 +256,17 @@ public class ConsolidationController {
 										gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(), 
 										gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
+										);
 								
-								String[] jobStart = {trace, "1000", "50@16@1", "5000", "ga"};		
+								String[] jobStart = {trace, "1000", "50@16@1", 
+										":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
+										":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
+										"5000", "ga"};
 								try {
 									JobDispatchingDemo.main(jobStart);
 								} catch (Exception e) {
-									throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
+									e.printStackTrace();
 								}
 								
 								//load the results
@@ -299,13 +312,17 @@ public class ConsolidationController {
 										abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(), 
 										abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
+										);
 								
-								String[] jobStart = {trace, "1000", "50@16@1", "5000", "abc"};		
+								String[] jobStart = {trace, "1000", "50@16@1", 
+										":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
+										":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
+										"5000", "abc"};
 								try {
 									JobDispatchingDemo.main(jobStart);
 								} catch (Exception e) {
-									throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
+									e.printStackTrace();
 								}
 								
 								//load the results
@@ -371,7 +388,7 @@ public class ConsolidationController {
 		String doLocalSearch = "";
 		String lowerThreshold = "";
 
-		setPsoProperties(psoSwarmSize, psoNrIterations, psoC1, psoC2);
+		setPsoProperties(psoSwarmSize, psoNrIterations, psoC1, psoC2, doLocalSearch, lowerThreshold);
 		setAbcProperties(abcPopulationSize, abcNrIterations, abcLimitTrials, abcMutationProb, doLocalSearch, lowerThreshold);
 		setGaProperties(gaPopulationSize, gaNrIterations, gaNrCrossovers, gaMutationProb, doLocalSearch, lowerThreshold);
 		
@@ -535,13 +552,15 @@ public class ConsolidationController {
 	 * @param c2
 	 * 			This value defines the second learning factor.
 	 */
-	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2) {
+	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, String doLocalSearch, String lowerThreshold) {
 		File file = new File("consolidationProperties.xml");
 		
 		props.setProperty("psoSwarmSize", swarmSize);
 		props.setProperty("psoNrIterations", iterations);
 		props.setProperty("psoC1", c1);
 		props.setProperty("psoC2", c2);
+		props.setProperty("doLocalSearch", doLocalSearch);
+		props.setProperty("lowerThreshold", lowerThreshold);
 		
 		try {
 			this.saveProps(file);
