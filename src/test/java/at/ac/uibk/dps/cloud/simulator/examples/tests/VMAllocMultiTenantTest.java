@@ -162,14 +162,14 @@ public class VMAllocMultiTenantTest extends IaaSRelatedFoundation {
 	
 	// testcases
 	
-	@Test(timeout = 1000)
-	public void compTypesTest() {
-		MultiTenantController controller = new MultiTenantController();
-		controller.readCompTypes();
-		ArrayList<ComponentType> results = MultiTenantPMScheduler.getTypes();
-		
-		Assert.assertEquals(7, results.size());
-	}
+//	@Test(timeout = 1000)
+//	public void compTypesTest() {
+//		MultiTenantController controller = new MultiTenantController();
+//		controller.readCompTypes();
+//		ArrayList<ComponentType> results = MultiTenantPMScheduler.getTypes();
+//		
+//		Assert.assertEquals(7, results.size());
+//	}
 	
 	@Test(timeout = 1000)
 	public void requestsTest() {

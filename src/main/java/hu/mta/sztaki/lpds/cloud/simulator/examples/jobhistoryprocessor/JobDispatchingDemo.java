@@ -32,7 +32,6 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,9 +48,6 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.Consolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.consolidation.SimpleConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.PhysicalMachineController;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.SchedulingDependentMachines;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.AbcConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.GaConsolidator;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.PsoConsolidator;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.Scheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
@@ -78,12 +74,11 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.PowerTransitionGenerator;
  *         MTA SZTAKI (c) 2012-5"
  */
 public class JobDispatchingDemo {
-	// save the results inside a file to load it inside the consolidation controller
-
-	public static final Properties results = new Properties();
+	public static Thread mainThread;
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		mainThread=Thread.currentThread();
 		// Allows repeated execution
 		Timed.resetTimed();
 		if (!MultiIaaSJobDispatcher.verbosity) {
@@ -147,45 +142,20 @@ public class JobDispatchingDemo {
 			System.exit(0);
 		}
 
-		//String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.examples.consolidator");
-		String consolidatorClass = "Consolidator";
+		String consolidatorClass = System.getProperty("hu.mta.sztaki.lpds.cloud.simulator.examples.consolidator");
 		Class<? extends Consolidator> consolidator = null;
 		if (consolidatorClass != null) {
-//			try {
-//				@SuppressWarnings("rawtypes")
-//				Class trial = Class.forName(consolidatorClass);
-//				if (Consolidator.class.isAssignableFrom(trial)) {
-//					consolidator = trial;
-//				} else {
-//					consolidator = SimpleConsolidator.class;
-//				}
-//			} catch (Exception e) {
-//				consolidator = SimpleConsolidator.class;
-//			}
-			
-			// new version
 			try {
 				@SuppressWarnings("rawtypes")
-				Class trial = null;
-				if(args.length > 4) {
-					switch(args[4]) {
-						case "abc": trial = AbcConsolidator.class;
-						break;
-						case "ga": trial = GaConsolidator.class;
-						break;
-						case "pso" : trial = PsoConsolidator.class;
-						break;
-					}
-					if (Consolidator.class.isAssignableFrom(trial)) {
-						consolidator = trial;
-					}
-				}
-				else {
+				Class trial = Class.forName(consolidatorClass);
+				if (Consolidator.class.isAssignableFrom(trial)) {
+					consolidator = trial;
+				} else {
 					consolidator = SimpleConsolidator.class;
 				}
 			} catch (Exception e) {
 				consolidator = SimpleConsolidator.class;
-			}			
+			}
 		}
 
 		// The preparation of the clouds

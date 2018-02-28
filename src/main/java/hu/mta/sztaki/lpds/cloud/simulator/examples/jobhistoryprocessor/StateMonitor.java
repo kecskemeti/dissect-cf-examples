@@ -74,7 +74,8 @@ class StateMonitor extends Timed {
 		public void run() {
 			try {
 				do {
-					while (monitoringDataQueue.peek() == null && continueRunning) {
+					while (monitoringDataQueue.peek() == null && continueRunning
+							&& JobDispatchingDemo.mainThread.isAlive()) {
 						try {
 							sleep(50);
 						} catch (InterruptedException ie) {
@@ -88,7 +89,7 @@ class StateMonitor extends Timed {
 						// output csv file
 						bw.write(st.toString());
 					}
-				} while (continueRunning);
+				} while (continueRunning && JobDispatchingDemo.mainThread.isAlive());
 				bw.close();
 			} catch (IOException e) {
 				throw new RuntimeException("Problem with writing out the monitoring database", e);
@@ -156,8 +157,9 @@ class StateMonitor extends Timed {
 	}
 
 	public static double averageRunningPMs = 0;
-	public static int maxRunningPMs=0;
+	public static int maxRunningPMs = 0;
 	private long measurementCount = 0;
+	private double totRunningPMs = 0;
 
 	/**
 	 * The main event handling mechanism in this periodic state monitor. This
@@ -182,8 +184,8 @@ class StateMonitor extends Timed {
 			current.queueLen += iaas.sched.getQueueLength();
 			current.totalTransferredData += iaas.repositories.get(0).outbws.getTotalProcessed();
 		}
-		maxRunningPMs=Math.max(maxRunningPMs, current.runningPMs);
-		averageRunningPMs = current.runningPMs + (current.runningPMs - averageRunningPMs) / measurementCount;
+		maxRunningPMs = Math.max(maxRunningPMs, current.runningPMs);
+		totRunningPMs += current.runningPMs;
 		current.timeStamp = Timed.getFireCount();
 		// Recording it
 		monitoringDataQueue.add(current);
@@ -202,6 +204,7 @@ class StateMonitor extends Timed {
 			for (IaaSEnergyMeter m : meters) {
 				sum += m.getTotalConsumption();
 			}
+			averageRunningPMs = totRunningPMs / measurementCount;
 			// Warning! assuming ms base.
 			System.err.println("Total power consumption: " + sum / 1000 / 3600000 + " kWh");
 
