@@ -35,8 +35,6 @@ public class ConsolidationController {
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
 	private String seed = "123";
-	private String doLocalSearch2 = "false";
-	private String doLocalSearch1 = "true";
 	
 	private String trace;		
 	
@@ -60,16 +58,14 @@ public class ConsolidationController {
 		
 		// set the default values
 		
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2, doLocalSearch1, doLocalSearch2, lowerThreshold);
-		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, doLocalSearch1, doLocalSearch2, lowerThreshold);
-		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, doLocalSearch1, doLocalSearch2, lowerThreshold);
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2);
+		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false", lowerThreshold);
+		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false", lowerThreshold);
 		
 		props.setProperty("upperThreshold", upperThreshold);
 		props.setProperty("lowerThreshold", lowerThreshold);
 		props.setProperty("mutationProb", mutationProb);
 		props.setProperty("seed", seed);
-		props.setProperty("doLocalSearch1", doLocalSearch1);
-		props.setProperty("doLocalSearch2", doLocalSearch2);
 		
 		//trace = props.getProperty(trace);
 		
@@ -82,8 +78,6 @@ public class ConsolidationController {
 	 * This testcase is to find the best configuration of the parameters of the consolidators. For that, 
 	 * we define a list of values to test and this method runs the appropriate consolidators for all 
 	 * possible combinations of the values. All results are saved inside a csv file.
-	 * 
-	 * Note that we do not use localsearch2.
 	 * 
 	 * @param test
 	 * 				If set to true, default values are taken, otherwise the lists get filled and all 
@@ -202,48 +196,38 @@ public class ConsolidationController {
 			for(int second : psoNrIterationsValues) {
 				for(int third : psoC1Values) {
 					for(int fourth : psoC2Values) {
-						for(boolean fifth: doLocalSearchValues) {
-							for(double sixth: lowerThresholdValues) {
-								// we only use localsearch1
-								setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(), 
-									psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(), 
-									psoC1Values.get(psoC1Values.indexOf(third)).toString(), 
-									psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
-									doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-									"false",
-									lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
-									);
 						
-								String[] jobStart = {trace, "1000", "50@16@1", 
-									":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
-									":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
-									"5000", "pso"};
-								try {
-									JobDispatchingDemo.main(jobStart);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-								//load the results
-								Properties psoResult = JobDispatchingDemo.results;
+						setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(), 
+								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(), 
+								psoC1Values.get(psoC1Values.indexOf(third)).toString(), 
+								psoC2Values.get(psoC2Values.indexOf(fourth)).toString());
 						
-								String results = "" + psoResult.getProperty("total power consumption") + ";" + psoResult.getProperty("migrations") + ";" +
-									psoResult.getProperty("max active pms") + ";" + psoResult.getProperty("average active pms") + ";" + 
-									psoResult.getProperty("runs") + ";" + psoResult.getProperty("amount of vms") + ";" +
-									psoResult.getProperty("averageTime") + ";" + psoResult.getProperty("time") + ";" + 
-									psoResult.getProperty("performance") + "";
+						String[] jobStart = {trace, "1000", "50@16@1", "5000", "pso"};		
+						try {
+							JobDispatchingDemo.main(jobStart);
+						} catch (Exception e) {
+							throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
+						}
+						//load the results
 						
-								//save the results with the rest of the information
+						Properties psoResult = JobDispatchingDemo.results;
 						
-								String parameters = "SwarmSize: " + psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)) + "; NrOfIterations: " + 
-									psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)) + "; C1: " + 
-									psoC1Values.get(psoC1Values.indexOf(third)) + "; C2: " + 
-									psoC2Values.get(psoC2Values.indexOf(fourth)) + ";";
-								try {
-									saveResults(writer, "pso;", parameters, results);
-								} catch (IOException e) {
-									throw new RuntimeException("An error occured while saving.");
-								}
-							}
+						String results = "" + psoResult.getProperty("total power consumption") + ";" + psoResult.getProperty("migrations") + ";" +
+								psoResult.getProperty("max active pms") + ";" + psoResult.getProperty("average active pms") + ";" + 
+								psoResult.getProperty("runs") + ";" + psoResult.getProperty("amount of vms") + ";" +
+								psoResult.getProperty("averageTime") + ";" + psoResult.getProperty("time") + ";" + 
+								psoResult.getProperty("performance") + "";
+						
+						//save the results with the rest of the information
+						
+						String parameters = "SwarmSize: " + psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)) + "; NrOfIterations: " + 
+								psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)) + "; C1: " + 
+								psoC1Values.get(psoC1Values.indexOf(third)) + "; C2: " + 
+								psoC2Values.get(psoC2Values.indexOf(fourth)) + ";";
+						try {
+							saveResults(writer, "pso;", parameters, results);
+						} catch (IOException e) {
+							throw new RuntimeException("An error occured while saving.");
 						}
 					}
 				}
@@ -258,24 +242,18 @@ public class ConsolidationController {
 					for(double fourth: gaMutationProbValues) {
 						for(boolean fifth: doLocalSearchValues) {
 							for(double sixth: lowerThresholdValues) {
-								// we only use localsearch1
 								setGaProperties(gaPopulationSizeValues.get(gaPopulationSizeValues.indexOf(first)).toString(), 
 										gaNrIterationsValues.get(gaNrIterationsValues.indexOf(second)).toString(), 
 										gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(), 
 										gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										"false",
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
-										);
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
 								
-								String[] jobStart = {trace, "1000", "50@16@1", 
-										":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
-										":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
-										"5000", "ga"};
+								String[] jobStart = {trace, "1000", "50@16@1", "5000", "ga"};		
 								try {
 									JobDispatchingDemo.main(jobStart);
 								} catch (Exception e) {
-									e.printStackTrace();
+									throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
 								}
 								
 								//load the results
@@ -316,24 +294,18 @@ public class ConsolidationController {
 					for(double fourth : abcMutationProbValues) {
 						for(boolean fifth: doLocalSearchValues) {
 							for(double sixth: lowerThresholdValues) {
-								// we only use localsearch1
 								setAbcProperties(abcPopulationSizeValues.get(abcPopulationSizeValues.indexOf(first)).toString(), 
 										abcNrIterationsValues.get(abcNrIterationsValues.indexOf(second)).toString(), 
 										abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(), 
 										abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
 										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										"false",
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString()
-										);
+										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString());
 								
-								String[] jobStart = {trace, "1000", "50@16@1", 
-										":hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.FirstFitScheduler", 
-										":hu.mta.sztaki.lpds.cloud.simulator.iaas.pmscheduling.ConsolidationFriendlyPmScheduler", 
-										"5000", "abc"};
+								String[] jobStart = {trace, "1000", "50@16@1", "5000", "abc"};		
 								try {
 									JobDispatchingDemo.main(jobStart);
 								} catch (Exception e) {
-									e.printStackTrace();
+									throw new RuntimeException("JobDispatchingDemo.main() could not be started.");
 								}
 								
 								//load the results
@@ -396,13 +368,12 @@ public class ConsolidationController {
 		String gaNrCrossovers = "";
 		String gaMutationProb = "";
 
-		String doLocalSearch1 = "";
-		String doLocalSearch2 = "";
+		String doLocalSearch = "";
 		String lowerThreshold = "";
 
-		setPsoProperties(psoSwarmSize, psoNrIterations, psoC1, psoC2, doLocalSearch1, doLocalSearch2, lowerThreshold);
-		setAbcProperties(abcPopulationSize, abcNrIterations, abcLimitTrials, abcMutationProb, doLocalSearch1, doLocalSearch2, lowerThreshold);
-		setGaProperties(gaPopulationSize, gaNrIterations, gaNrCrossovers, gaMutationProb, doLocalSearch1, doLocalSearch2, lowerThreshold);
+		setPsoProperties(psoSwarmSize, psoNrIterations, psoC1, psoC2);
+		setAbcProperties(abcPopulationSize, abcNrIterations, abcLimitTrials, abcMutationProb, doLocalSearch, lowerThreshold);
+		setGaProperties(gaPopulationSize, gaNrIterations, gaNrCrossovers, gaMutationProb, doLocalSearch, lowerThreshold);
 		
 		//test the three consolidators and save the results
 		//abc consolidator
@@ -563,18 +534,14 @@ public class ConsolidationController {
 	 * 			This value defines the first learning factor.
 	 * @param c2
 	 * 			This value defines the second learning factor.
-	 * @param lowerThreshold2 
 	 */
-	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, String doLocalSearch1, String doLocalSearch2, String lowerThreshold2) {
+	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2) {
 		File file = new File("consolidationProperties.xml");
 		
 		props.setProperty("psoSwarmSize", swarmSize);
 		props.setProperty("psoNrIterations", iterations);
 		props.setProperty("psoC1", c1);
 		props.setProperty("psoC2", c2);
-		props.setProperty("doLocalSearch1", doLocalSearch1);
-		props.setProperty("doLocalSearch2", doLocalSearch2);
-		props.setProperty("lowerThreshold", lowerThreshold);
 		
 		try {
 			this.saveProps(file);
@@ -593,15 +560,14 @@ public class ConsolidationController {
 	 * 			This value defines the maximum number of trials for improvement before a solution is abandoned.
 	 * @param mutationProb 
 	 */
-	private void setAbcProperties(String populationSize, String iterations, String limitTrials, String mutationProb, String doLocalSearch1, String doLocalSearch2, String lowerThreshold) {
+	private void setAbcProperties(String populationSize, String iterations, String limitTrials, String mutationProb, String doLocalSearch, String lowerThreshold) {
 		File file = new File("consolidationProperties.xml");
 		
 		props.setProperty("abcPopulationSize", populationSize);
 		props.setProperty("abcNrIterations", iterations);
 		props.setProperty("abcLimitTrials", limitTrials);
 		props.setProperty("mutationProb", mutationProb);
-		props.setProperty("doLocalSearch1", doLocalSearch1);
-		props.setProperty("doLocalSearch2", doLocalSearch2);
+		props.setProperty("doLocalSearch", doLocalSearch);
 		props.setProperty("lowerThreshold", lowerThreshold);
 		
 		try {
@@ -620,15 +586,14 @@ public class ConsolidationController {
 	 * @param crossovers
 	 * 			This value defines the number of recombinations to perform in each generation.
 	 */
-	private void setGaProperties(String populationSize, String iterations, String crossovers, String mutationProb, String doLocalSearch1, String doLocalSearch2, String lowerThreshold) {
+	private void setGaProperties(String populationSize, String iterations, String crossovers, String mutationProb, String doLocalSearch, String lowerThreshold) {
 		File file = new File("consolidationProperties.xml");
 		
 		props.setProperty("gaPopulationSize", populationSize);
 		props.setProperty("gaNrIterations", iterations);
 		props.setProperty("gaNrCrossovers", crossovers);
 		props.setProperty("mutationProb", mutationProb);
-		props.setProperty("doLocalSearch1", doLocalSearch1);
-		props.setProperty("doLocalSearch2", doLocalSearch2);
+		props.setProperty("doLocalSearch", doLocalSearch);
 		props.setProperty("lowerThreshold", lowerThreshold);
 		
 		try {
