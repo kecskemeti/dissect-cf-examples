@@ -189,13 +189,15 @@ public class ConsolidationController {
 				for (int third : psoC1Values) {
 					for (int fourth : psoC2Values) {
 						for (boolean fifth : doLocalSearch1Values) {
-							for (boolean sixth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch2Values) {
 								for (double seventh : lowerThresholdValues) {
-									setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
+									setPsoProperties(
+											psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
 											psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
 											psoC1Values.get(psoC1Values.indexOf(third)).toString(),
 											psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
-											Boolean.toString(fifth), Boolean.toString(sixth),
+											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
+											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											Double.toString(seventh), false);
 									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
@@ -214,7 +216,7 @@ public class ConsolidationController {
 				for (int third : gaNrCrossoversValues) {
 					for (double fourth : gaMutationProbValues) {
 						for (boolean fifth : doLocalSearch1Values) {
-							for (boolean sixth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch2Values) {
 								for (double seventh : lowerThresholdValues) {
 									setGaProperties(
 											gaPopulationSizeValues.get(gaPopulationSizeValues.indexOf(first)).toString(),
@@ -226,7 +228,7 @@ public class ConsolidationController {
 											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
 											false);
 
-									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
+									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
 								}
@@ -243,7 +245,7 @@ public class ConsolidationController {
 				for (int third : abcLimitTrialsValues) {
 					for (double fourth : abcMutationProbValues) {
 						for (boolean fifth : doLocalSearch1Values) {
-							for (boolean sixth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch2Values) {
 								for (double seventh : lowerThresholdValues) {
 									setAbcProperties(
 											abcPopulationSizeValues.get(abcPopulationSizeValues.indexOf(first)).toString(),
@@ -254,7 +256,7 @@ public class ConsolidationController {
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
 											false);
-									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
+									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
 								}
@@ -279,7 +281,7 @@ public class ConsolidationController {
 	 *            	This value defines the second learning factor.
 	 * @param doLocalSearch1
 	 * 			  	If activated, Solution.improve() is additionally used.
-	 * @param doLocalSearch1
+	 * @param doLocalSearch2
 	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
 	 * @param lowerThreshold
 	 * 			  	The value used for the lowerThreshold.
@@ -314,7 +316,7 @@ public class ConsolidationController {
 	 * 			  	The value for mutationProb.
 	 * @param doLocalSearch1
 	 * 			  	If activated, Solution.improve() is additionally used.
-	 * @param doLocalSearch1
+	 * @param doLocalSearch2
 	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
 	 * @param lowerThreshold
 	 * 			  	The value used for the lowerThreshold.
@@ -348,7 +350,7 @@ public class ConsolidationController {
 	 * 			  	The value for mutationProb.
 	 * @param doLocalSearch1
 	 * 			  	If activated, Solution.improve() is additionally used.
-	 * @param doLocalSearch1
+	 * @param doLocalSearch2
 	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
 	 * @param lowerThreshold
 	 * 			  	The value used for the lowerThreshold.
