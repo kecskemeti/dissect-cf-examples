@@ -40,6 +40,8 @@ public class ConsolidationController {
 	private String lowerThreshold = "0.25";
 	private String mutationProb = "0.2";
 	private String seed = "123";
+	private String doLocalSearch2 = "false";
+	private String doLocalSearch1 = "false";
 
 	public static void main(String[] args) throws IOException {
 		new ConsolidationController().runTestcaseOne(false);
@@ -67,12 +69,15 @@ public class ConsolidationController {
 		props.setProperty("lowerThreshold", lowerThreshold);
 		props.setProperty("mutationProb", mutationProb);
 		props.setProperty("seed", seed);
-		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2, "false",
-				lowerThreshold, true);
-		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb, "false",
-				lowerThreshold, true);
-		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, "false",
-				lowerThreshold, true);
+		props.setProperty("doLocalSearch1", doLocalSearch1);
+		props.setProperty("doLocalSearch2", doLocalSearch2);
+		
+		setPsoProperties(psoDefaultSwarmSize, psoDefaultNrIterations, psoDefaultC1, psoDefaultC2, doLocalSearch1, 
+				doLocalSearch2, lowerThreshold, true);
+		setAbcProperties(abcDefaultPopulationSize, abcDefaultNrIterations, abcDefaultLimitTrials, mutationProb,
+				doLocalSearch1, doLocalSearch2, lowerThreshold, true);
+		setGaProperties(gaDefaultPopulationSize, gaDefaultNrIterations, gaDefaultNrCrossovers, mutationProb, 
+				doLocalSearch1, doLocalSearch2, lowerThreshold, true);
 
 	}
 
@@ -103,7 +108,8 @@ public class ConsolidationController {
 		List<Integer> abcLimitTrialsValues = new ArrayList<>();
 		List<Double> abcMutationProbValues = new ArrayList<>();
 
-		List<Boolean> doLocalSearchValues = new ArrayList<>();
+		List<Boolean> doLocalSearch1Values = new ArrayList<>();
+		List<Boolean> doLocalSearch2Values = new ArrayList<>();
 		List<Double> lowerThresholdValues = new ArrayList<>();
 
 		// fill the lists with values
@@ -141,8 +147,12 @@ public class ConsolidationController {
 				gaMutationProbValues.add(j);
 				j = j + 0.1;
 			}
-			doLocalSearchValues.add(false);
-			doLocalSearchValues.add(true);
+			doLocalSearch1Values.add(false);
+			doLocalSearch1Values.add(true);
+			
+			doLocalSearch2Values.add(false);
+			doLocalSearch2Values.add(true);
+			
 			lowerThresholdValues.add(0.2);
 			lowerThresholdValues.add(0.4);
 			lowerThresholdValues.add(0.6);
@@ -165,7 +175,8 @@ public class ConsolidationController {
 			abcLimitTrialsValues.add(5);
 			abcMutationProbValues.add(0.2);
 
-			doLocalSearchValues.add(false);
+			doLocalSearch1Values.add(false);
+			doLocalSearch2Values.add(false);
 			lowerThresholdValues.add(0.25);
 		}
 
@@ -177,44 +188,48 @@ public class ConsolidationController {
 			for (int second : psoNrIterationsValues) {
 				for (int third : psoC1Values) {
 					for (int fourth : psoC2Values) {
-						for (boolean fifth : doLocalSearchValues) {
-							for (double sixth : lowerThresholdValues) {
-								setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
-										psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
-										psoC1Values.get(psoC1Values.indexOf(third)).toString(),
-										psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
-										Boolean.toString(fifth), Double.toString(sixth), false);
-								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
-									// no point in testing more than one value
-									break;
+						for (boolean fifth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch1Values) {
+								for (double seventh : lowerThresholdValues) {
+									setPsoProperties(psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
+											psoNrIterationsValues.get(psoNrIterationsValues.indexOf(second)).toString(),
+											psoC1Values.get(psoC1Values.indexOf(third)).toString(),
+											psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
+											Boolean.toString(fifth), Boolean.toString(sixth),
+											Double.toString(seventh), false);
+									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
+										// no point in testing more than one value
+										break;
+								}
 							}
 						}
-
 					}
 				}
 			}
 		}
 
 		// ga consolidator
-
 		for (int first : gaPopulationSizeValues) {
 			for (int second : gaNrIterationsValues) {
 				for (int third : gaNrCrossoversValues) {
 					for (double fourth : gaMutationProbValues) {
-						for (boolean fifth : doLocalSearchValues) {
-							for (double sixth : lowerThresholdValues) {
-								setGaProperties(
-										gaPopulationSizeValues.get(gaPopulationSizeValues.indexOf(first)).toString(),
-										gaNrIterationsValues.get(gaNrIterationsValues.indexOf(second)).toString(),
-										gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(),
-										gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
-										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),
-										false);
+						for (boolean fifth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch1Values) {
+								for (double seventh : lowerThresholdValues) {
+									setGaProperties(
+											gaPopulationSizeValues.get(gaPopulationSizeValues.indexOf(first)).toString(),
+											gaNrIterationsValues.get(gaNrIterationsValues.indexOf(second)).toString(),
+											gaNrCrossoversValues.get(gaNrCrossoversValues.indexOf(third)).toString(),
+											gaMutationProbValues.get(gaMutationProbValues.indexOf(fourth)).toString(),
+											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
+											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
+											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
+											false);
 
-								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
-											// no point in testing more than one value
-									break;
+									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
+										// no point in testing more than one value
+										break;
+								}
 							}
 						}
 					}
@@ -223,24 +238,26 @@ public class ConsolidationController {
 		}
 
 		// abc consolidator
-
 		for (int first : abcPopulationSizeValues) {
 			for (int second : abcNrIterationsValues) {
 				for (int third : abcLimitTrialsValues) {
 					for (double fourth : abcMutationProbValues) {
-						for (boolean fifth : doLocalSearchValues) {
-							for (double sixth : lowerThresholdValues) {
-								setAbcProperties(
-										abcPopulationSizeValues.get(abcPopulationSizeValues.indexOf(first)).toString(),
-										abcNrIterationsValues.get(abcNrIterationsValues.indexOf(second)).toString(),
-										abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(),
-										abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
-										doLocalSearchValues.get(doLocalSearchValues.indexOf(fifth)).toString(),
-										lowerThresholdValues.get(lowerThresholdValues.indexOf(sixth)).toString(),
-										false);
-								if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
-											// no point in testing more than one value
-									break;
+						for (boolean fifth : doLocalSearch1Values) {
+							for (boolean sixth : doLocalSearch1Values) {
+								for (double seventh : lowerThresholdValues) {
+									setAbcProperties(
+											abcPopulationSizeValues.get(abcPopulationSizeValues.indexOf(first)).toString(),
+											abcNrIterationsValues.get(abcNrIterationsValues.indexOf(second)).toString(),
+											abcLimitTrialsValues.get(abcLimitTrialsValues.indexOf(third)).toString(),
+											abcMutationProbValues.get(abcMutationProbValues.indexOf(fourth)).toString(),
+											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
+											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
+											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
+											false);
+									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
+										// no point in testing more than one value
+										break;
+								}
 							}
 						}
 					}
@@ -253,22 +270,31 @@ public class ConsolidationController {
 	 * Setter for the constant values of the pso algorithm.
 	 * 
 	 * @param swarmSize
-	 *            This value defines the amount of particles.
+	 *            	This value defines the amount of particles.
 	 * @param iterations
-	 *            This value defines the number of iterations.
+	 *            	This value defines the number of iterations.
 	 * @param c1
-	 *            This value defines the first learning factor.
+	 *            	This value defines the first learning factor.
 	 * @param c2
-	 *            This value defines the second learning factor.
+	 *            	This value defines the second learning factor.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.improve() is additionally used.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
+	 * @param lowerThreshold
+	 * 			  	The value used for the lowerThreshold.
+	 * @param noWrite
+	 * 			  	Determines if the properties shall be saved.
 	 */
-	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, String doLocalSearch,
-			String lowerThreshold, boolean noWrite) {
+	private void setPsoProperties(String swarmSize, String iterations, String c1, String c2, String doLocalSearch1,
+			String doLocalSearch2, String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("psoSwarmSize", swarmSize);
 		props.setProperty("psoNrIterations", iterations);
 		props.setProperty("psoC1", c1);
 		props.setProperty("psoC2", c2);
-		props.setProperty("doLocalSearch", doLocalSearch);
+		props.setProperty("doLocalSearch1", doLocalSearch1);
+		props.setProperty("doLocalSearch2", doLocalSearch2);
 		props.setProperty("lowerThreshold", lowerThreshold);
 
 		this.saveProps(PsoConsolidator.class.getName(), noWrite);
@@ -278,22 +304,32 @@ public class ConsolidationController {
 	 * Setter for the constant values of the abc algorithm.
 	 * 
 	 * @param populationSize
-	 *            This value defines the amount of individuals in the population.
+	 *            	This value defines the amount of individuals in the population.
 	 * @param iterations
-	 *            This value defines the number of iterations.
+	 *            	This value defines the number of iterations.
 	 * @param limitTrials
-	 *            This value defines the maximum number of trials for improvement
-	 *            before a solution is abandoned.
+	 *            	This value defines the maximum number of trials for improvement
+	 *            	before a solution is abandoned.
 	 * @param mutationProb
+	 * 			  	The value for mutationProb.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.improve() is additionally used.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
+	 * @param lowerThreshold
+	 * 			  	The value used for the lowerThreshold.
+	 * @param noWrite
+	 * 			  	Determines if the properties shall be saved.
 	 */
 	private void setAbcProperties(String populationSize, String iterations, String limitTrials, String mutationProb,
-			String doLocalSearch, String lowerThreshold, boolean noWrite) {
+			String doLocalSearch1, String doLocalSearch2, String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("abcPopulationSize", populationSize);
 		props.setProperty("abcNrIterations", iterations);
 		props.setProperty("abcLimitTrials", limitTrials);
 		props.setProperty("mutationProb", mutationProb);
-		props.setProperty("doLocalSearch", doLocalSearch);
+		props.setProperty("doLocalSearch1", doLocalSearch1);
+		props.setProperty("doLocalSearch2", doLocalSearch2);
 		props.setProperty("lowerThreshold", lowerThreshold);
 
 		this.saveProps(AbcConsolidator.class.getName(), noWrite);
@@ -303,21 +339,32 @@ public class ConsolidationController {
 	 * Setter for the constant values of the ga algorithm.
 	 * 
 	 * @param populationSize
-	 *            This value defines the amount of individuals in the population.
+	 *           	This value defines the amount of individuals in the population.
 	 * @param iterations
-	 *            This value defines the number of iterations.
+	 *            	This value defines the number of iterations.
 	 * @param crossovers
-	 *            This value defines the number of recombinations to perform in each
-	 *            generation.
+	 *            	This value defines the number of recombinations to perform in each generation.
+ 	 * @param mutationProb
+	 * 			  	The value for mutationProb.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.improve() is additionally used.
+	 * @param doLocalSearch1
+	 * 			  	If activated, Solution.simpleConsolidatorImprove() is additionally used.
+	 * @param lowerThreshold
+	 * 			  	The value used for the lowerThreshold.
+	 * @param noWrite
+	 * 				Determines if the properties shall be saved.
+	 * 			  
 	 */
 	private void setGaProperties(String populationSize, String iterations, String crossovers, String mutationProb,
-			String doLocalSearch, String lowerThreshold, boolean noWrite) {
+			String doLocalSearch1, String doLocalSearch2, String lowerThreshold, boolean noWrite) {
 
 		props.setProperty("gaPopulationSize", populationSize);
 		props.setProperty("gaNrIterations", iterations);
 		props.setProperty("gaNrCrossovers", crossovers);
 		props.setProperty("mutationProb", mutationProb);
-		props.setProperty("doLocalSearch", doLocalSearch);
+		props.setProperty("doLocalSearch1", doLocalSearch1);
+		props.setProperty("doLocalSearch2", doLocalSearch2);
 		props.setProperty("lowerThreshold", lowerThreshold);
 
 		this.saveProps(GaConsolidator.class.getName(), noWrite);
@@ -326,8 +373,10 @@ public class ConsolidationController {
 	/**
 	 * Saves the properties in the data after changing them.
 	 * 
-	 * @param file
-	 * @throws IOException
+	 * @param consType
+	 * 				The type of the consolidator.
+	 * @param noWrite
+	 * 				If true, the properties do not get stored.
 	 */
 	private void saveProps(String consType, boolean noWrite) {
 		if (noWrite)
