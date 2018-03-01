@@ -78,6 +78,17 @@ public class JobDispatchingDemo {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		new Thread() {
+			public void run() {
+				try {
+					sleep(60*60*1000);
+				} catch (InterruptedException e) {
+					
+				}
+				System.err.println("Terminated because of a timeout!");
+				System.exit(-1);
+			};
+		}.start();
 		mainThread=Thread.currentThread();
 		// Allows repeated execution
 		Timed.resetTimed();
