@@ -9,6 +9,7 @@ import java.util.logging.SimpleFormatter;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import at.ac.uibk.dps.cloud.simulator.test.IaaSRelatedFoundation;
@@ -171,6 +172,7 @@ public class VMAllocMultiTenantTest extends IaaSRelatedFoundation {
 //		Assert.assertEquals(7, results.size());
 //	}
 	
+	@Ignore
 	@Test(timeout = 1000)
 	public void requestsTest() {
 		MultiTenantController controller = new MultiTenantController();

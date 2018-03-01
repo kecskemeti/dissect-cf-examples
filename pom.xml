@@ -13,18 +13,25 @@
 			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
-                <dependency>
-                        <groupId>at.ac.uibk.dps.cloud.simulator</groupId>
-                        <artifactId>dissect-cf</artifactId>
-                        <version>0.9.7-SNAPSHOT-rp</version>
-                </dependency>
-                <dependency>
-                	<groupId>
+		<dependency>
+			<groupId>at.ac.uibk.dps.cloud.simulator</groupId>
+			<artifactId>dissect-cf</artifactId>
+			<version>0.9.7-SNAPSHOT-rp</version>
+		</dependency>
+		<dependency>
+			<groupId>at.ac.uibk.dps.cloud.simulator</groupId>
+			<artifactId>dissect-cf</artifactId>
+			<version>0.9.7-SNAPSHOT-rp</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>
                 		hu.mta.sztaki.lpds.cloud.simulator
                 	</groupId>
-                	<artifactId>DistSysJavaHelpers</artifactId>
-                	<version>1.0.2-SNAPSHOT</version>
-                </dependency>
+			<artifactId>DistSysJavaHelpers</artifactId>
+			<version>1.0.2-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<inceptionYear>2012</inceptionYear>
 	<organization>

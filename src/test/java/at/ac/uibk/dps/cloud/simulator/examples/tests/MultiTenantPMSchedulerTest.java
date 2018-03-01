@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import at.ac.uibk.dps.cloud.simulator.test.IaaSRelatedFoundation;
@@ -91,6 +92,7 @@ public class MultiTenantPMSchedulerTest extends IaaSRelatedFoundation {
 		}
 	}
 	
+	@Ignore
 	@Test(timeout = 100)
 	public void testProcessRequestWithCompType() throws VMManagementException, NetworkException {
 		testPM1.turnon();
