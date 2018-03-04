@@ -190,6 +190,11 @@ public class ConsolidationController {
 					for (int fourth : psoC2Values) {
 						for (boolean fifth : doLocalSearch1Values) {
 							for (boolean sixth : doLocalSearch2Values) {
+								
+								// if both values are true, we skip this run, because only ls1 would be taken
+								if(fifth && sixth) {
+									continue;
+								}									
 								for (double seventh : lowerThresholdValues) {
 									setPsoProperties(
 											psoSwarmSizeValues.get(psoSwarmSizeValues.indexOf(first)).toString(),
@@ -217,6 +222,11 @@ public class ConsolidationController {
 					for (double fourth : gaMutationProbValues) {
 						for (boolean fifth : doLocalSearch1Values) {
 							for (boolean sixth : doLocalSearch2Values) {
+
+								// if both values are true, we skip this run, because only ls1 would be taken
+								if(fifth && sixth) {
+									continue;
+								}	
 								for (double seventh : lowerThresholdValues) {
 									setGaProperties(
 											gaPopulationSizeValues.get(gaPopulationSizeValues.indexOf(first)).toString(),
@@ -246,6 +256,11 @@ public class ConsolidationController {
 					for (double fourth : abcMutationProbValues) {
 						for (boolean fifth : doLocalSearch1Values) {
 							for (boolean sixth : doLocalSearch2Values) {
+
+								// if both values are true, we skip this run, because only ls1 would be taken
+								if(fifth && sixth) {
+									continue;
+								}	
 								for (double seventh : lowerThresholdValues) {
 									setAbcProperties(
 											abcPopulationSizeValues.get(abcPopulationSizeValues.indexOf(first)).toString(),
