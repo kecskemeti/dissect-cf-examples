@@ -13,7 +13,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant.Request.Ty
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmscheduling.NonQueueingScheduler;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 
@@ -30,7 +30,7 @@ public class ComponentTest extends IaaSRelatedFoundation {
 
 	@Before
 	public void setUpBeforeClass() throws Exception {
-		ctype = new ComponentType(init[0], init[1], new ResourceVector(Double.parseDouble(init[2]), 
+		ctype = new ComponentType(init[0], init[1], new ConstantConstraints(Double.parseDouble(init[2]), 
 				Double.parseDouble(init[3]), Long.parseLong(init[4])), Boolean.parseBoolean(init[5]));		
 	}
 
@@ -51,7 +51,7 @@ public class ComponentTest extends IaaSRelatedFoundation {
 	@Test(timeout = 100)
 	public void testRequestFunctionality() { 
 		cinstance = ctype.createInstance(false);
-		Request r = new Request("A", ctype, new ResourceVector(0,0,0), false, false, false, 0, 0, Type.NEW_REQUEST);
+		Request r = new Request("A", ctype, ConstantConstraints.noResources, false, false, false, 0, 0, Type.NEW_REQUEST);
 		cinstance.addRequest(r);
 		
 		Assert.assertEquals(1, cinstance.getRequests().size());

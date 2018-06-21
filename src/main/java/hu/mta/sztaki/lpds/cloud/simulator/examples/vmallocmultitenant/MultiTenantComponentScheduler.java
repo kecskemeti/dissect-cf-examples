@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VirtualMachine;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine.State;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.VMManager.VMManagementException;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 import hu.mta.sztaki.lpds.cloud.simulator.io.Repository;
 import hu.mta.sztaki.lpds.cloud.simulator.io.VirtualAppliance;
 import hu.mta.sztaki.lpds.cloud.simulator.io.NetworkNode.NetworkException;
@@ -72,7 +72,7 @@ public class MultiTenantComponentScheduler implements Helpers {
 			long third = Long.parseLong(initialCompTypes.get(type).get(3));
 			boolean fourth = Boolean.getBoolean(initialCompTypes.get(type).get(4));
 			
-			ComponentType compType = new ComponentType(type, provider, new ResourceVector(first, second, third), fourth);
+			ComponentType compType = new ComponentType(type, provider, new ConstantConstraints(first, second, third), fourth);
 			types.add(compType);
 		}		
 	}

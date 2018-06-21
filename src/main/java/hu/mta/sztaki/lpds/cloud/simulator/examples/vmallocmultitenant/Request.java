@@ -1,6 +1,6 @@
 package hu.mta.sztaki.lpds.cloud.simulator.examples.vmallocmultitenant;
 
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
 
 /**
  * This class represents a request of a ComponentType. The variables of a request
@@ -12,7 +12,7 @@ public class Request {
 	
 	private String tenant;
 	private ComponentType ctype;
-	private ResourceVector cons;
+	private ResourceConstraints cons;
 	private boolean crit, custom, supportsSecureEnclaves;
 	private double startTime, duration;
 	private Type event;
@@ -41,7 +41,7 @@ public class Request {
 	 * @param event
 	 * 			The type of this request.
 	 */
-	public Request(String tenant, ComponentType ctype, ResourceVector cons, boolean crit, boolean custom, boolean supportsSecureEnclaves, 
+	public Request(String tenant, ComponentType ctype, ResourceConstraints cons, boolean crit, boolean custom, boolean supportsSecureEnclaves, 
 			double startTime, double duration, Type event) {
 		
 		this.tenant = tenant;
@@ -117,7 +117,7 @@ public class Request {
 	 * 
 	 * @return The ResourceVector with the requested resources.
 	 */
-	public ResourceVector getResources() {
+	public ResourceConstraints getResources() {
 		return cons;
 	}
 	

@@ -23,7 +23,6 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.IaaSService;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.PhysicalMachine;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ConstantConstraints;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.constraints.ResourceConstraints;
-import hu.mta.sztaki.lpds.cloud.simulator.iaas.vmconsolidation.ResourceVector;
 
 	/**
 	 * This class is similar to the consolidation controller. It creates
@@ -209,9 +208,8 @@ public class MultiTenantController {
 				long third = Long.parseLong(strings[6]);
 				
 				// a new ResourceVector is created for passing it to the new request
-		    	ResourceVector cons = new ResourceVector(first, second, third);
 		    	
-		    	Request req = new Request(tenant, ctype, cons, crit, custom, supportsSecureEnclaves, startTime, duration, Type.NEW_REQUEST);
+		    	Request req = new Request(tenant, ctype, new ConstantConstraints(first, second, third), crit, custom, supportsSecureEnclaves, startTime, duration, Type.NEW_REQUEST);
 			    initialRequests.add(req);
 		    			    	
 		    }
