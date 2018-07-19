@@ -86,8 +86,8 @@ public class MultiIaaSJobDispatcher extends Timed {
 	 */
 	protected List<Repository> repo;
 	/**
-	 * the virtual appliance that will be used as the generic image for each VM
-	 * in the clouds
+	 * the virtual appliance that will be used as the generic image for each VM in
+	 * the clouds
 	 */
 	protected VirtualAppliance va;
 	/**
@@ -107,8 +107,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 	 */
 	protected long ignorecounter = 0;
 	/**
-	 * number of VMs destroyed by this dispatcher - i.e., number of jobs
-	 * completed
+	 * number of VMs destroyed by this dispatcher - i.e., number of jobs completed
 	 */
 	protected long destroycounter = 0;
 	/**
@@ -117,8 +116,12 @@ public class MultiIaaSJobDispatcher extends Timed {
 	 */
 	protected double useThisProcPower = Double.MAX_VALUE;
 	/**
-	 * the processing power specified before for the single core of the VM
-	 * should be guaranteed
+	 * The amount of memory requested for each core in a VM
+	 */
+	protected long useThisMemory = Long.MAX_VALUE;
+	/**
+	 * the processing power specified before for the single core of the VM should be
+	 * guaranteed
 	 */
 	protected boolean isMinimumProcPower = false;
 	/**
@@ -127,21 +130,18 @@ public class MultiIaaSJobDispatcher extends Timed {
 	private int targetIndex = 0;
 
 	/**
-	 * Dispatcher setup. Fetches all jobs from the given trace producer and
-	 * analyzes them to fill out min- and max-submit-times. Finally it analyzes
-	 * and prepares the target IaaS services. The analysis is targeted at
-	 * finding the PM capacity characteristics of each IaaS, while the
-	 * preparatory step ensures the availability of the VA to be used for
-	 * instantiating the VMs for the jobs.
+	 * Dispatcher setup. Fetches all jobs from the given trace producer and analyzes
+	 * them to fill out min- and max-submit-times. Finally it analyzes and prepares
+	 * the target IaaS services. The analysis is targeted at finding the PM capacity
+	 * characteristics of each IaaS, while the preparatory step ensures the
+	 * availability of the VA to be used for instantiating the VMs for the jobs.
 	 * 
-	 * WARNING: only uniformly prepared IaaS systems are supported right now
-	 * (i.e. all of them having the same amount of PMs and all of their PMs are
+	 * WARNING: only uniformly prepared IaaS systems are supported right now (i.e.
+	 * all of them having the same amount of PMs and all of their PMs are
 	 * constructed with the same amount of resources)
 	 * 
-	 * @param producer
-	 *            the trace
-	 * @param target
-	 *            the iaas systems to be used for submitting the trace to
+	 * @param producer the trace
+	 * @param target   the iaas systems to be used for submitting the trace to
 	 */
 	public MultiIaaSJobDispatcher(GenericTraceProducer producer, List<IaaSService> target)
 			throws TraceManagementException {
@@ -175,6 +175,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 				if (pp < useThisProcPower) {
 					useThisProcPower = pp;
 				}
+				useThisMemory = (long)(pm.getCapacities().getRequiredMemory() / cores);
 			}
 			if (iaas.machines.size() > maxIaaSmachines) {
 				maxIaaSmachines = iaas.machines.size();
@@ -261,8 +262,9 @@ public class MultiIaaSJobDispatcher extends Timed {
 				final double requestedprocs = (double) toprocess.nprocs / requestedTotalInstances;
 				// For simplicity, here we have an assumption that our clouds
 				// are uniform...
-				final int requestedClouds = (int) Math.ceil(requestedTotalInstances > maxIaaSmachines
-						? (double) requestedTotalInstances / maxIaaSmachines : 1);
+				final int requestedClouds = (int) Math.ceil(
+						requestedTotalInstances > maxIaaSmachines ? (double) requestedTotalInstances / maxIaaSmachines
+								: 1);
 				if (requestedClouds <= target.size()) {
 
 					final int uniformSpread = requestedTotalInstances / requestedClouds;
@@ -280,7 +282,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 							final VirtualMachine[] vmsTemp = target.get(targetIndex)
 									.requestVM(va,
 											new ConstantConstraints(requestedprocs, useThisProcPower,
-													isMinimumProcPower, 512000000),
+													isMinimumProcPower, (long)(requestedprocs*useThisMemory)),
 											repo.get(targetIndex), currentRequestSize);
 							System.arraycopy(vmsTemp, 0, vms, vmpointer, vmsTemp.length);
 							for (int k = vmpointer + vmsTemp.length - 1; k >= vmpointer; k--) {
@@ -370,8 +372,8 @@ public class MultiIaaSJobDispatcher extends Timed {
 	}
 
 	/**
-	 * tells how many VMs executed their tasks successfully (and then
-	 * successively how many of them got destroyed)
+	 * tells how many VMs executed their tasks successfully (and then successively
+	 * how many of them got destroyed)
 	 * 
 	 * @return
 	 */
@@ -380,11 +382,10 @@ public class MultiIaaSJobDispatcher extends Timed {
 	}
 
 	/**
-	 * Allows single job runners to let us know if they have completed the
-	 * execution of their job
+	 * Allows single job runners to let us know if they have completed the execution
+	 * of their job
 	 * 
-	 * @param finishedVMs
-	 *            the number of VMs that were actually used for the job
+	 * @param finishedVMs the number of VMs that were actually used for the job
 	 */
 	void increaseDestroyCounter(final int finishedVMs) {
 		if (finishedVMs <= 0) {
@@ -394,13 +395,12 @@ public class MultiIaaSJobDispatcher extends Timed {
 	}
 
 	/**
-	 * Sets the processing power related requirements for the resource
-	 * allocation requests for all VMs.
+	 * Sets the processing power related requirements for the resource allocation
+	 * requests for all VMs.
 	 * 
-	 * @param usableProcPower
-	 *            the CPU's processing power instructions/ms
-	 * @param minimum
-	 *            is it the minimum required or the total you want to specify
+	 * @param usableProcPower the CPU's processing power instructions/ms
+	 * @param minimum         is it the minimum required or the total you want to
+	 *                        specify
 	 */
 	public void setUsableProcPower(final double usableProcPower, final boolean minimum) {
 		this.useThisProcPower = usableProcPower;

@@ -78,18 +78,23 @@ public class JobDispatchingDemo {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		mainThread=Thread.currentThread();
 		new Thread() {
 			public void run() {
+				int i=86400;
 				try {
-					sleep(60*60*1000);
+					while(mainThread.isAlive()&&i-->=0) {
+						sleep(1000);
+					}		
 				} catch (InterruptedException e) {
 					
 				}
-				System.err.println("Terminated because of a timeout!");
-				System.exit(-1);
+				if(mainThread.isAlive()) {
+					System.err.println("Terminated because of a timeout!");
+					System.exit(-1);
+				}
 			};
 		}.start();
-		mainThread=Thread.currentThread();
 		// Allows repeated execution
 		Timed.resetTimed();
 		if (!MultiIaaSJobDispatcher.verbosity) {
@@ -257,7 +262,7 @@ public class JobDispatchingDemo {
 				for (int i = 1; i <= numofNodes; i++) {
 					String currid = machineid + i;
 					final double pmBWRatio = Math.max(numofCores / 7f, 1);
-					PhysicalMachine pm = new PhysicalMachine(numofCores, 0.001, 256000000000l,
+					PhysicalMachine pm = new PhysicalMachine(numofCores, 0.001, numofCores*256000000000l/64,
 							new Repository(5000000000000l, currid, (long) (pmBWRatio * 250000),
 									(long) (pmBWRatio * 250000), (long) (pmBWRatio * 50000), latencyMapMachine,
 									stTransitions, nwTransitions),
