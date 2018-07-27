@@ -116,7 +116,7 @@ public class ConsolidationController {
 
 		if (!test) {
 
-			int i = 1;
+			int i = 3;
 			while (i < 101) {
 				psoSwarmSizeValues.add(i);
 				gaPopulationSizeValues.add(i);
@@ -204,7 +204,7 @@ public class ConsolidationController {
 											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											Double.toString(seventh), true);
-									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
+									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
 								}
@@ -236,9 +236,9 @@ public class ConsolidationController {
 											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
-											true);
+											false);
 
-									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
+									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
 								}
@@ -270,8 +270,8 @@ public class ConsolidationController {
 											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
-											false);
-									if (!fifth && !sixth) // if no local search -> value of lowerThreshold plays no role -> there is
+											true);
+									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
 								}
