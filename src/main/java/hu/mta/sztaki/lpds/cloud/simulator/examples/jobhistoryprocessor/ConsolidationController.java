@@ -95,8 +95,8 @@ public class ConsolidationController {
 		// defining lists with values for each parameter of each relevant algorithm
 		List<Integer> psoSwarmSizeValues = new ArrayList<>();
 		List<Integer> psoNrIterationsValues = new ArrayList<>();
-		List<Integer> psoC1Values = new ArrayList<>();
-		List<Integer> psoC2Values = new ArrayList<>();
+		List<Double> psoC1Values = new ArrayList<>();
+		List<Double> psoC2Values = new ArrayList<>();
 
 		List<Integer> gaPopulationSizeValues = new ArrayList<>();
 		List<Integer> gaNrIterationsValues = new ArrayList<>();
@@ -133,15 +133,21 @@ public class ConsolidationController {
 				abcLimitTrialsValues.add(i);
 				i += 3;
 			}
-
-			i = 1;
-			while (i < 11) {
-				psoC1Values.add(i);
-				psoC2Values.add(i);
-				i = i + 2;
+			
+			double j=.05; 
+			while (j < .41) {
+				psoC1Values.add(j);
+				psoC2Values.add(j);
+				j = j + .05;
+			}
+			j=1.6;
+			while (j < 2.81) {
+				psoC1Values.add(j);
+				psoC2Values.add(j);
+				j = j + .1;
 			}
 
-			double j = 0.1;
+			j = 0.1;
 			while (j <= 1) {
 				abcMutationProbValues.add(j);
 				gaMutationProbValues.add(j);
@@ -162,8 +168,8 @@ public class ConsolidationController {
 		if (test) {
 			psoSwarmSizeValues.add(20);
 			psoNrIterationsValues.add(50);
-			psoC1Values.add(2);
-			psoC2Values.add(2);
+			psoC1Values.add(2.0);
+			psoC2Values.add(2.0);
 
 			gaPopulationSizeValues.add(10);
 			gaNrIterationsValues.add(50);
@@ -186,8 +192,8 @@ public class ConsolidationController {
 		// pso consolidator
 		for (int first : psoSwarmSizeValues) {
 			for (int second : psoNrIterationsValues) {
-				for (int third : psoC1Values) {
-					for (int fourth : psoC2Values) {
+				for (double third : psoC1Values) {
+					for (double fourth : psoC2Values) {
 						for (boolean fifth : doLocalSearch1Values) {
 							for (boolean sixth : doLocalSearch2Values) {
 								
@@ -203,7 +209,7 @@ public class ConsolidationController {
 											psoC2Values.get(psoC2Values.indexOf(fourth)).toString(),
 											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
-											Double.toString(seventh), true);
+											Double.toString(seventh), false);
 									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
 										break;
@@ -236,7 +242,7 @@ public class ConsolidationController {
 											doLocalSearch1Values.get(doLocalSearch1Values.indexOf(fifth)).toString(),
 											doLocalSearch2Values.get(doLocalSearch2Values.indexOf(sixth)).toString(),
 											lowerThresholdValues.get(lowerThresholdValues.indexOf(seventh)).toString(),
-											false);
+											true);
 
 									if (!fifth) // if no local search -> value of lowerThreshold plays no role -> there is
 										// no point in testing more than one value
