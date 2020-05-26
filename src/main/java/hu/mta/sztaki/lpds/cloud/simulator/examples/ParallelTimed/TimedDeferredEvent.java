@@ -2,7 +2,7 @@
  * Author: Dilshad H. Sallo
  */
 
-package hu.mta.sztaki.lpds.cloud.simulator.examples.Timed;
+package hu.mta.sztaki.lpds.cloud.simulator.examples.ParallelTimed;
 
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
@@ -12,11 +12,11 @@ import java.util.Map;
 
 /*
  * TimedDeferredEvent class used Timed class and DeferredEvent class to 
- * test performance of both together to balance load of each object.
+ * test performance of both together to balance execution time for each object.
  */
 public class TimedDeferredEvent {
 	
-	final static int limit = 1000000;	
+	final static int limit = 35000;	
 	static boolean  fired = true;
 	
 	/*
