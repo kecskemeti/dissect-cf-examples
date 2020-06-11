@@ -54,6 +54,7 @@ class StateMonitor extends Timed {
 	private boolean continueRunning = true;
 
 	class DataFlusherThread extends Thread {
+		private final boolean writeToFile;
 		/**
 		 * Where do we write the data? Allows to have a threshold on the monitoring
 		 * database and in the future it can be used to continuously empty the database
@@ -61,12 +62,15 @@ class StateMonitor extends Timed {
 		 */
 		private BufferedWriter bw;
 
-		public DataFlusherThread(String traceFile) throws IOException {
+		public DataFlusherThread(String traceFile, boolean writeToFile) throws IOException {
 			if (MultiIaaSJobDispatcher.verbosity) {
 				System.err.println("Data flusher thread starts");
 			}
-			bw = new BufferedWriter(new FileWriter(traceFile + ".converted"));
-			bw.write("UnixTime*1000" + ",NrFinished,NrQueued,VMNum,UsedCores,OnPMs,CentralRepoTX\n");
+			this.writeToFile = writeToFile;
+			if (writeToFile) {
+				bw = new BufferedWriter(new FileWriter(traceFile + ".converted"));
+				bw.write("UnixTime*1000" + ",NrFinished,NrQueued,VMNum,UsedCores,OnPMs,CentralRepoTX\n");
+			}
 			start();
 		}
 
@@ -87,14 +91,20 @@ class StateMonitor extends Timed {
 						// Afterwards we write out the collected statistics to
 						// the
 						// output csv file
-						bw.write(st.toString());
+						if (writeToFile) {
+							bw.write(st.toString());
+						}
 					}
 				} while (continueRunning && JobDispatchingDemo.mainThread.isAlive());
-				bw.close();
+				if (writeToFile) {
+					bw.close();
+				}
 			} catch (IOException e) {
 				throw new RuntimeException("Problem with writing out the monitoring database", e);
 			}
-			System.err.println("State information written " + Calendar.getInstance().getTimeInMillis());
+			if (writeToFile) {
+				System.err.println("State information written " + Calendar.getInstance().getTimeInMillis());
+			}
 			if (MultiIaaSJobDispatcher.verbosity) {
 				System.err.println("Data flusher thread terminates");
 			}
@@ -131,21 +141,17 @@ class StateMonitor extends Timed {
 	 * WARNING: this function keeps a file open until the dispatcher terminates its
 	 * operation!
 	 * 
-	 * @param traceFile
-	 *            the name of the output csv (without the .converted extension)
-	 * @param dispatcher
-	 *            the dispatcher that sends its jobs to the clouds
-	 * @param iaasList
-	 *            the clouds that needs to be monitored
-	 * @param interval
-	 *            the energy metering interval to be applied
-	 * @throws IOException
-	 *             if there was a output file creation error
+	 * @param traceFile  the name of the output csv (without the .converted
+	 *                   extension)
+	 * @param dispatcher the dispatcher that sends its jobs to the clouds
+	 * @param iaasList   the clouds that needs to be monitored
+	 * @param interval   the energy metering interval to be applied
+	 * @throws IOException if there was a output file creation error
 	 */
-	public StateMonitor(String traceFile, MultiIaaSJobDispatcher dispatcher, List<IaaSService> iaasList, int interval)
-			throws IOException {
+	public StateMonitor(String traceFile, MultiIaaSJobDispatcher dispatcher, List<IaaSService> iaasList, int interval,
+			boolean writeToFile) throws IOException {
 		System.err.println("Power metering started with delay " + interval);
-		new DataFlusherThread(traceFile);
+		new DataFlusherThread(traceFile, writeToFile);
 		this.iaasList = iaasList;
 		this.dispatcher = dispatcher;
 		for (IaaSService iaas : iaasList) {

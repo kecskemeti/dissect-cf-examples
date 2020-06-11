@@ -78,23 +78,48 @@ public class JobDispatchingDemo {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
-		mainThread=Thread.currentThread();
-		new Thread() {
-			public void run() {
-				int i=86400;
-				try {
-					while(mainThread.isAlive()&&i-->=0) {
-						sleep(1000);
-					}		
-				} catch (InterruptedException e) {
-					
+		mainThread = Thread.currentThread();
+		int toidx = -1;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--TO")) {
+				toidx = i;
+				break;
+			}
+		}
+		final long timeout;
+		if (toidx >= 0) {
+			timeout = Long.parseLong(args[toidx].substring(4));
+			String[] args2 = new String[args.length - 1];
+			int j = 0;
+			for (int i = 0; i < args.length; i++) {
+				if (i != toidx) {
+					args2[j] = args[i];
+					j++;
 				}
-				if(mainThread.isAlive()) {
-					System.err.println("Terminated because of a timeout!");
-					System.exit(-1);
-				}
-			};
-		}.start();
+			}
+			args = args2;
+		} else {
+			timeout = -1;
+		}
+		if (timeout > 0) {
+			System.err.println("Timeout applied: " + timeout + " ms");
+			new Thread() {
+				public void run() {
+					long i = timeout / 1000;
+					try {
+						while (mainThread.isAlive() && i-- >= 0) {
+							sleep(1000);
+						}
+					} catch (InterruptedException e) {
+
+					}
+					if (mainThread.isAlive()) {
+						System.err.println("Terminated because of a timeout!");
+						System.exit(-1);
+					}
+				};
+			}.start();
+		}
 		// Allows repeated execution
 		Timed.resetTimed();
 		if (!MultiIaaSJobDispatcher.verbosity) {
@@ -262,7 +287,7 @@ public class JobDispatchingDemo {
 				for (int i = 1; i <= numofNodes; i++) {
 					String currid = machineid + i;
 					final double pmBWRatio = Math.max(numofCores / 7f, 1);
-					PhysicalMachine pm = new PhysicalMachine(numofCores, 0.001, numofCores*256000000000l/64,
+					PhysicalMachine pm = new PhysicalMachine(numofCores, 0.001, numofCores * 256000000000l / 64,
 							new Repository(5000000000000l, currid, (long) (pmBWRatio * 250000),
 									(long) (pmBWRatio * 250000), (long) (pmBWRatio * 50000), latencyMapMachine,
 									stTransitions, nwTransitions),
@@ -363,6 +388,10 @@ public class JobDispatchingDemo {
 		System.err.println("Current simulation time: " + Timed.getFireCount());
 		if (doMonitoring) {
 			// Final monitoring related CLI arguments parsing
+			boolean noConverted = args[3].startsWith("+");
+			if (noConverted) {
+				args[3] = args[3].substring(1);
+			}
 			final int interval = Integer.parseInt(args[3]);
 			if (interval == 0) {
 				System.err.println("ERROR: Improperly specified energy consumption monitoring interval!");
@@ -371,7 +400,7 @@ public class JobDispatchingDemo {
 			// Creation of the state monitor object (it will register and
 			// deregister itself with timed once there are no more activites
 			// expected in the cloud, so we don't need to keep its reference)
-			new StateMonitor(args[0], dispatcher, iaasList, interval);
+			new StateMonitor(args[0], dispatcher, iaasList, interval, !noConverted);
 		}
 		// Now everything is prepared for launching the simulation
 
