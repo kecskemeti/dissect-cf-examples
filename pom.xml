@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>hu.mta.sztaki.lpds.cloud.simulator</groupId>
 	<artifactId>dissect-cf-examples</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<name>DISSECT-CF-Examples</name>
 	<description>Examples for the DIScrete event baSed Energy Consumption simulaTor for Clouds and Federations</description>
 	<dependencies>
@@ -13,18 +13,25 @@
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
-                <dependency>
-                        <groupId>at.ac.uibk.dps.cloud.simulator</groupId>
-                        <artifactId>dissect-cf</artifactId>
-                        <version>0.9.7-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                	<groupId>
+		<dependency>
+			<groupId>at.ac.uibk.dps.cloud.simulator</groupId>
+			<artifactId>dissect-cf</artifactId>
+			<version>0.9.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>at.ac.uibk.dps.cloud.simulator</groupId>
+			<artifactId>dissect-cf</artifactId>
+			<version>0.9.8-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>
                 		hu.mta.sztaki.lpds.cloud.simulator
                 	</groupId>
-                	<artifactId>DistSysJavaHelpers</artifactId>
-                	<version>1.0.2-SNAPSHOT</version>
-                </dependency>
+			<artifactId>DistSysJavaHelpers</artifactId>
+			<version>1.0.2-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<inceptionYear>2012</inceptionYear>
 	<organization>
@@ -43,8 +50,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>10</source>
+					<target>10</target>
 				</configuration>
 			</plugin>
 			<plugin>

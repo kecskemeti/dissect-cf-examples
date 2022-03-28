@@ -125,6 +125,10 @@ public class MultiIaaSJobDispatcher extends Timed {
 	 */
 	protected double useThisProcPower = Double.MAX_VALUE;
 	/**
+	 * The amount of memory requested for each core in a VM
+	 */
+	protected long useThisMemory = Long.MAX_VALUE;
+	/**
 	 * the processing power specified before for the single core of the VM should be
 	 * guaranteed
 	 */
@@ -184,6 +188,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 				if (pp < useThisProcPower) {
 					useThisProcPower = pp;
 				}
+				useThisMemory = (long)(pm.getCapacities().getRequiredMemory() / cores);
 			}
 			if (iaas.machines.size() > maxIaaSmachines) {
 				maxIaaSmachines = iaas.machines.size();
@@ -218,7 +223,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 				public void run() {
 					printLog("Starting monitoring thread!");
 					boolean keepThread = true;
-					while (keepThread) {
+					while (keepThread && !JobDispatchingDemo.mainThread.isAlive()) {
 						printStats();
 						final long cont = System.currentTimeMillis() + 15000;
 						int qlen = -1;
@@ -271,7 +276,7 @@ public class MultiIaaSJobDispatcher extends Timed {
 									+ ((toprocess.nprocs % (int) maxmachinecores) == 0 ? 0 : 1);
 					final double requestedprocs = (double) toprocess.nprocs / requestedTotalInstances;
 					ConstantConstraints reqRC = new ConstantConstraints(requestedprocs, useThisProcPower,
-							isMinimumProcPower, 512000000);
+							isMinimumProcPower, (long)(requestedprocs*useThisMemory));
 					// For simplicity, here we have an assumption that our clouds
 					// are uniform...
 					int requestedClouds = (int) Math.ceil(requestedTotalInstances > maxIaaSmachines
@@ -279,7 +284,6 @@ public class MultiIaaSJobDispatcher extends Timed {
 							: 1);
 					if (requestedClouds <= target.size()) {
 						// We have a chance to fit the job request in
-
 						// Clean up the VM keeper list of ours
 						Iterator<VMKeeper> it = pooledVMs.iterator();
 						while (it.hasNext()) {

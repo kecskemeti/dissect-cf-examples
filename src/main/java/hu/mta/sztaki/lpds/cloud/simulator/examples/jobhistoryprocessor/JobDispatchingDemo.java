@@ -29,6 +29,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.examples.util.DCCreation;
@@ -67,9 +69,58 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.CloudLoader;
  *         MTA SZTAKI (c) 2012-5"
  */
 public class JobDispatchingDemo {
+	public static Thread mainThread;
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
+		mainThread = Thread.currentThread();
+		int toidx = -1;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--TO")) {
+				toidx = i;
+				break;
+			}
+		}
+		final long timeout;
+		if (toidx >= 0) {
+			timeout = Long.parseLong(args[toidx].substring(4));
+			String[] args2 = new String[args.length - 1];
+			int j = 0;
+			for (int i = 0; i < args.length; i++) {
+				if (i != toidx) {
+					args2[j] = args[i];
+					j++;
+				}
+			}
+			args = args2;
+		} else {
+			timeout = -1;
+		}
+		if (timeout > 0) {
+			System.err.println("Timeout applied: " + timeout + " ms");
+			new Thread() {
+				public void run() {
+					long i = timeout / 1000;
+					try {
+						while (mainThread.isAlive() && i-- >= 0) {
+							sleep(1000);
+						}
+					} catch (InterruptedException e) {
+
+					}
+					if (mainThread.isAlive()) {
+						System.err.println("Terminated because of a timeout!");
+						System.exit(-1);
+					}
+				};
+			}.start();
+		}
+		// Allows repeated execution
+		Timed.resetTimed();
+		if (!MultiIaaSJobDispatcher.verbosity) {
+			Logger.getGlobal().setLevel(Level.OFF);
+		}
+
 		// The help
 		if (args.length < 2) {
 			System.out.println("Expected parameters:");
@@ -278,13 +329,17 @@ public class JobDispatchingDemo {
 		}
 		long beforeSimu = Calendar.getInstance().getTimeInMillis();
 		System.err.println(
-				"Job dispatcher (with " + dispatcher.jobs.length + " jobs)  is completely prepared at " + beforeSimu);
+				"Job dispatcher (with " + dispatcher.jobs.length + " jobs) is completely prepared at " + beforeSimu);
 		// Moving the simulator's time just before the first event would come
 		// from the dispatcher
 		Timed.skipEventsTill(dispatcher.getMinsubmittime() * 1000);
 		System.err.println("Current simulation time: " + Timed.getFireCount());
 		if (doMonitoring) {
 			// Final monitoring related CLI arguments parsing
+			boolean noConverted = args[3].startsWith("+");
+			if (noConverted) {
+				args[3] = args[3].substring(1);
+			}
 			final int interval = Integer.parseInt(args[3]);
 			if (interval == 0) {
 				System.err.println("ERROR: Improperly specified energy consumption monitoring interval!");
@@ -293,7 +348,7 @@ public class JobDispatchingDemo {
 			// Creation of the state monitor object (it will register and
 			// deregister itself with timed once there are no more activites
 			// expected in the cloud, so we don't need to keep its reference)
-			new StateMonitor(args[0], dispatcher, iaasList, interval);
+			new StateMonitor(args[0], dispatcher, iaasList, interval, !noConverted);
 		}
 		// Now everything is prepared for launching the simulation
 
@@ -311,7 +366,20 @@ public class JobDispatchingDemo {
 		System.err.println("Final number of: Ignored jobs - " + dispatcher.getIgnorecounter() + " Destroyed VMs - "
 				+ dispatcher.getDestroycounter() + " reused VMs: " + dispatcher.reuseCounter);
 		if (consolidator != null) {
-			System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+			if (Consolidator.consolidationRuns != 0) {
+				System.err.println("Total migrations done: " + SimpleConsolidator.migrationCount);
+				System.err.println("Number of consolidation runs: " + Consolidator.consolidationRuns);
+				System.err.println(
+						"Consolidator performance: " + duration / Consolidator.consolidationRuns + " ms/consolidation");
+			} else {
+				System.err.println("There were no consolidation runs!");
+			}
+		}
+		if (doMonitoring) {
+			System.err.println("Average number of PMs in running state: " + StateMonitor.averageRunningPMs);
+			System.err.println(
+					"Maximum number of running PMs during the whole simulation: " + StateMonitor.maxRunningPMs);
+
 		}
 		long vmcount = 0;
 		for (IaaSService lociaas : iaasList) {
