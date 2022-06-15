@@ -40,7 +40,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.helpers.job.Job;
  * @author "Gabor Kecskemeti, Department of Computer Science, Liverpool John
  *         Moores University, (c) 2019"
  */
-class QueueManager extends Timed {
+public class QueueManager extends Timed {
 
 	/**
 	 * The job launcher to with which we can do the job re-submissions
